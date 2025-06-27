@@ -3,6 +3,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <string>
+#include "ImGuiLayer.hpp"
 
 class Window {
   public:
@@ -17,6 +18,7 @@ class Window {
 
   private:
     GLFWwindow *m_Window;
+    ImGuiLayer imguiLayer;
 };
 
 #endif

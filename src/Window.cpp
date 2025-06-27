@@ -27,11 +27,17 @@ Window::~Window() {
 
 void Window::WindowLoop() {
   while (!glfwWindowShouldClose(m_Window)) {
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    imguiLayer.Begin(this);
+    imguiLayer.BeginDockspace();
 
-    glfwSwapBuffers(m_Window);
+    ImGui::Begin("Window");
+
+    ImGui::End();
+
+    imguiLayer.EndDockspace();
+    imguiLayer.End();
     glfwPollEvents();
+    glfwSwapBuffers(m_Window);
   }
 }
 
