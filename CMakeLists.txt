@@ -56,7 +56,13 @@ set(LLDB_LIB_DIR "${LLVM_PREFIX}/lib/")
 # ================================================
 #     Setup main lldb-frontend executable and linker data
 # ================================================
-set(SOURCES src/main.cpp src/Window.cpp src/Init.cpp src/ImGuiLayer.cpp)
+set(SOURCES 
+  src/main.cpp 
+  src/Window.cpp 
+  src/Init.cpp 
+  src/ImGuiLayer.cpp
+  src/LLDBDebugger.cpp
+  src/Util.cpp)
 
 add_executable(lldb-frontend ${SOURCES})
 
@@ -65,6 +71,8 @@ target_link_libraries(lldb-frontend PRIVATE lldb glfw glad imgui tfd)
 target_link_directories(lldb-frontend PRIVATE ${LLDB_LIB_DIR})
 target_include_directories(lldb-frontend PRIVATE ${LLDB_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/libs/glad/include ${CMAKE_SOURCE_DIR}/libs/tfd)
 
-set(TEST_SOURCES test/test.cpp)
+set(TEST_SOURCES
+  test/test.cpp
+  test/test_support.cpp)
 
 add_executable(lldb-frontend-test ${TEST_SOURCES})
