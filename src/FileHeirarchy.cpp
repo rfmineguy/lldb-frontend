@@ -62,4 +62,7 @@ void FileHeirarchy::Print() const {
 
   PrintRec(mainRoot, 0);
 }
+
+FileHeirarchy::HeirarchyElement* FileHeirarchy::GetRoot() const {
+  return mainRoot;
 }
