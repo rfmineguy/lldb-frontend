@@ -7,6 +7,7 @@ LLDBDebugger::LLDBDebugger() {
 }
 
 LLDBDebugger::~LLDBDebugger() {
+  lldb::SBDebugger::Destroy(debugger);
   lldb::SBDebugger::Terminate();
 }
 
