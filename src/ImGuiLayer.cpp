@@ -2,6 +2,10 @@
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <tinyfiledialogs.h>
+#include <iostream>
+#include "Window.hpp"
+#include "Util.hpp"
 
 ImGuiLayer::ImGuiLayer() {}
 ImGuiLayer::~ImGuiLayer() {}
@@ -68,4 +72,26 @@ void ImGuiLayer::EndDockspace() {
   ImGui::End();
 }
 void ImGuiLayer::Draw() {
+  ImGui::Begin("Code Window");
+  if (ImGui::Button("Open File Dialog")) {
+    const char* fdpath = tinyfd_openFileDialog("Choose File", "", 0, NULL, "executables", 0);
+    std::cout << "Path: " << fdpath << std::endl;
+
+    auto target = window_ref->GetDebuggerCtx()
+      .GetDebugger()
+      .CreateTarget(fdpath);
+
+    Util::PrintTargetModules(target);
+    Util::PrintModuleCompileUnits(target, 0);
+  }
+
+  if (ImGui::Button("Load Example Exe")) {
+    auto target = window_ref->GetDebuggerCtx()
+      .GetDebugger()
+      .CreateTarget("/Users/rileyfischer/Documents/dev/lldb-frontend/build/lldb-frontend-test");
+
+    Util::PrintTargetModules(target);
+    Util::PrintModuleCompileUnits(target, 0);
+  }
+  ImGui::End();
 }
