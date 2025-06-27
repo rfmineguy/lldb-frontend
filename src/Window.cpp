@@ -30,9 +30,8 @@ void Window::WindowLoop() {
     imguiLayer.Begin(this);
     imguiLayer.BeginDockspace();
 
-    ImGui::Begin("Window");
-
-    ImGui::End();
+    imguiLayer.Draw();
+    ImGui::ShowDemoWindow();
 
     imguiLayer.EndDockspace();
     imguiLayer.End();
