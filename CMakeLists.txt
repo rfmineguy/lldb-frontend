@@ -15,7 +15,7 @@ project(lldb-frontend LANGUAGES C CXX OBJC)
 set(CMAKE_CXX_STANDARD 17)
 
 # ================================================
-#     Setup Windowing libraries with FetchContent
+#     Setup libraries with FetchContent
 # ================================================
 FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git)
 FetchContent_MakeAvailable(glfw)
@@ -29,7 +29,8 @@ if(NOT imgui_POPULATED)
   add_subdirectory(${imgui_SOURCE_DIR} ${imgui_BINARY_DIR})
 endif()
 
-add_library(glad glad/src/gl.c)
+add_library(glad libs/glad/src/gl.c)
+add_library(tfd  libs/tfd/tinyfiledialogs.c)
 
 # ================================================
 #     Setup LLVM prefix
@@ -60,9 +61,9 @@ set(SOURCES src/main.cpp src/Window.cpp src/Init.cpp src/ImGuiLayer.cpp)
 add_executable(lldb-frontend ${SOURCES})
 
 message(${CMAKE_SOURCE_DIR})
-target_link_libraries(lldb-frontend PRIVATE lldb glfw glad imgui)
+target_link_libraries(lldb-frontend PRIVATE lldb glfw glad imgui tfd)
 target_link_directories(lldb-frontend PRIVATE ${LLDB_LIB_DIR})
-target_include_directories(lldb-frontend PRIVATE ${LLDB_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/glad/include)
+target_include_directories(lldb-frontend PRIVATE ${LLDB_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/libs/glad/include ${CMAKE_SOURCE_DIR}/libs/tfd)
 
 set(TEST_SOURCES test/test.cpp)
 
