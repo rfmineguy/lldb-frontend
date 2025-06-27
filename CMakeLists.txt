@@ -6,13 +6,13 @@ include(FetchContent)
 #     Setup test executable
 # ================================================
 project(lldb-frontend-test LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # ================================================
 #     Setup project
 # ================================================
 project(lldb-frontend LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 # ================================================
 #     Setup libraries with FetchContent
