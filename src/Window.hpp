@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include "ImGuiLayer.hpp"
+#include "LLDBDebugger.hpp"
 
 class Window {
   public:
@@ -12,6 +13,8 @@ class Window {
 
     void WindowLoop();
     const GLFWwindow* GetWindowHandle() const;
+    const ImGuiLayer* GetImGuiLayer();
+    LLDBDebugger&     GetDebuggerCtx();
 
   private:
     
@@ -19,6 +22,7 @@ class Window {
   private:
     GLFWwindow *m_Window;
     ImGuiLayer imguiLayer;
+    LLDBDebugger debuggerCtx;
 };
 
 #endif
