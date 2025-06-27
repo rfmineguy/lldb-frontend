@@ -43,3 +43,7 @@ void Window::WindowLoop() {
 const GLFWwindow* Window::GetWindowHandle() const {
   return m_Window;
 }
+
+LLDBDebugger& Window::GetDebuggerCtx() {
+  return debuggerCtx;
+}
