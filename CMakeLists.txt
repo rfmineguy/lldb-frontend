@@ -55,7 +55,7 @@ set(LLDB_LIB_DIR "${LLVM_PREFIX}/lib/")
 # ================================================
 #     Setup main lldb-frontend executable and linker data
 # ================================================
-set(SOURCES src/main.cpp src/Window.cpp src/Init.cpp)
+set(SOURCES src/main.cpp src/Window.cpp src/Init.cpp src/ImGuiLayer.cpp)
 
 add_executable(lldb-frontend ${SOURCES})
 
