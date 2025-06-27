@@ -13,7 +13,7 @@ class ImGuiLayer {
     void Draw();
 
   private:
-    const Window* window_ref;
+    Window* window_ref;
 };
 
 #endif
