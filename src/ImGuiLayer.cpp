@@ -174,6 +174,21 @@ void ImGuiLayer::DrawDebugWindow() {
 }
 
 void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
+  for (int i = 0; i < fctx.lines.size(); i++) {
+    auto& line = fctx.lines.at(i);
+    ImGui::PushID(i);
+    ImGuiCustom::Breakpoint(i, line.bp); ImGui::SameLine();
+    ImVec2 cursor = ImGui::GetCursorScreenPos();
+    ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
+    ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        cursor,
+        cursor + line_size,
+        i % 2 == 0 ? ImGui::GetColorU32(ImGuiCol_Button) : ImGui::GetColorU32(ImGuiCol_ButtonHovered),
+        0.f);
+    ImGui::Text("[%d] | %s", i, line.line.c_str());
+    ImGui::PopID();
+  }
 }
 
 void ImGuiLayer::DrawCodeWindow() {
