@@ -7,6 +7,7 @@
 #include <fstream>
 #include "Window.hpp"
 #include "Util.hpp"
+#include "Logger.hpp"
 
 ImGuiLayer::ImGuiLayer() {}
 ImGuiLayer::~ImGuiLayer() {}
@@ -79,10 +80,11 @@ void ImGuiLayer::Draw() {
 }
 
 bool ImGuiLayer::LoadFile(const std::string& fullpath) {
+  Logger::ScopedGroup g("ImGuiLayer::LoadFile");
   if (!fileContentsMap.contains(fullpath)) {
+    Logger::Info("Loading: {}", fullpath);
+
     fileContentsMap[fullpath];
-    // Read file line by line
-    std::cout << "Loading: " << fullpath << std::endl;
     std::ifstream f(fullpath);
     if (f.is_open()) {
       std::string line;
@@ -92,12 +94,13 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
       f.close();
     }
     else {
-      std::cerr << "Error: Failed to read '" << fullpath << "'" << std::endl;
+      Logger::Err("Failed to read {}", fullpath);
+      Logger::EndGroup();
       return false;
     }
   }
   else {
-    std::cout << "INFO: " << fullpath << ", already loaded" << std::endl;
+    Logger::Info("{} already loaded", fullpath);
   }
   return true;
 }
@@ -108,7 +111,8 @@ void ImGuiLayer::DrawDebugWindow() {
   if (ImGui::Button("Open File Dialog")) {
     const char* fdpath = tinyfd_openFileDialog("Choose File", "", 0, NULL, "executables", 0);
     if (fdpath) {
-      std::cout << "Path: " << fdpath << std::endl;
+      Logger::ScopedGroup g("OpenFileDialog");
+      Logger::Info("Path: {}", fdpath);
 
       auto target = window_ref->GetDebuggerCtx()
         .GetDebugger()
@@ -172,15 +176,9 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
 
   bool opened = ImGui::TreeNodeEx(element->local_path.c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
-    std::cout << "Clicked " << element->full_path << std::endl;
+    Logger::Info("Clicked {}", element->full_path.string());
     if (LoadFile(element->full_path)) {
-      // std::cout << "Contents (" << element->full_path << ")" << std::endl;
-      // const auto& lines = fileContentsMap.at(element->full_path);
-      // for (const auto& line : lines) {
-      //   std::cout << line << std::endl;
-      // }
     }
-    // do something
   }
   return opened;
 }

@@ -1,18 +1,20 @@
 #include "Util.hpp"
+#include "Logger.hpp"
 #include <iostream>
 
 namespace Util {
   void PrintTargetModules(lldb::SBTarget& target) {
-    std::cout << "TargetModules:" << std::endl;
+    Logger::ScopedGroup g("PrintTargetModules");
     for (int i = 0; i < target.GetNumModules(); i++) {
       auto module = target.GetModuleAtIndex(i);
-      std::cout << "\t" << i << " : " << module.GetFileSpec().GetFilename() << std::endl;
+      Logger::Info("{} : {}", i, module.GetFileSpec().GetFilename());
     }
   }
 
   void PrintModuleCompileUnits(lldb::SBTarget& target, int moduleIdx) {
+    Logger::ScopedGroup g("PrintModuleCompileUnits");
     uint32_t compileUnitCount = target.GetModuleAtIndex(0).GetNumCompileUnits();
-    std::cout << "Compile Unit Count: " << compileUnitCount << std::endl;
+    Logger::Info("Compile Unit Count: {}", compileUnitCount);
 
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       auto module = target.GetModuleAtIndex(i);
@@ -27,7 +29,7 @@ namespace Util {
         const char* path = fs.GetFilename();
         if (path == NULL) continue;
 
-        std::cout << "FileSpec Path: " << path << std::endl;
+        Logger::Info("FileSpec Path: {}", path);
       }
     }
   }

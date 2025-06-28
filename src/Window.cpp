@@ -1,6 +1,6 @@
 #include "Window.hpp"
+#include "Logger.hpp"
 #include <imgui.h>
-#include <iostream>
 #include <glad/gl.h>
 
 Window::Window(const std::string& title, int width, int height) {
@@ -12,17 +12,17 @@ Window::Window(const std::string& title, int width, int height) {
 #endif
   m_Window = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
   if (!m_Window) {
-    std::cerr << "Window: Failed to create window. Exitting..." << glfwGetError(NULL) << std::endl;
+    Logger::Err("Window: Failed to create window. Exitting... {}", glfwGetError(NULL));
     glfwTerminate();
     exit(2);
   }
   glfwMakeContextCurrent(m_Window);
-  std::cout << "Created window" << std::endl;
+  Logger::Info("Created window");
 }
 
 Window::~Window() {
   glfwDestroyWindow(m_Window);
-  std::cout << "Destroyed window" << std::endl;
+  Logger::Info("Destroyed window");
 }
 
 void Window::WindowLoop() {

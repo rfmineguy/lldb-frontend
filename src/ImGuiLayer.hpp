@@ -1,6 +1,8 @@
 #ifndef IMGUI_LAYER_HPP
 #define IMGUI_LAYER_HPP
 #include "FileHeirarchy.hpp"
+#include <unordered_map>
+#include <vector>
 struct Window;
 
 class ImGuiLayer {

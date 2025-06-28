@@ -1,4 +1,5 @@
 #include "Init.hpp"
+#include "Logger.hpp"
 #include <iostream>
 
 #include <glad/gl.h>
@@ -18,25 +19,25 @@ namespace lldb_frontend {
   bool Init::isGladInit = false;
   void Init::InitGlad() {
     if (!isGlfwInit) {
-      std::cerr << "Error: Must call InitGlfw() before InitGlad()" << std::endl;
+      Logger::Err("Must call InitGlfw() before InitGlad()");
       exit(1);
     }
 
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress)) {
-      std::cout << "Error: Failed to load glad" << std::endl;
+      Logger::Err("Error: Failed to load glad");
       exit(1);
     }
     isGladInit = true;
-    std::cout << "Initialized glad" << std::endl;
+    Logger::Info("Initialized glad");
   }
   void Init::InitGlfw() {
     if (!glfwInit()) {
-      std::cerr << "Error: Failed to glfwInit()" << std::endl;
+      Logger::Err("Error: Failed to glfwInit()");
       exit(1);
     }
     isGlfwInit = true;
 
-    std::cout << "Initialized glfw" << std::endl;
+    Logger::Info("Initialized glfw");
   }
   void Init::TerminateGlfw() {
     glfwTerminate();
@@ -49,12 +50,12 @@ namespace lldb_frontend {
     ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window.GetWindowHandle(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    std::cout << "Initialized imgui" << std::endl;
+    Logger::Info("Initialized imgui");
   }
   void Init::DeinitImGui() {
     ImGui_ImplGlfw_Shutdown();
     ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
-    std::cout << "Deinitialized imgui" << std::endl;
+    Logger::Info("Deinitialized imgui");
   }
 }
