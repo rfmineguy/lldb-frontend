@@ -174,10 +174,10 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
   if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
 
-  bool opened = ImGui::TreeNodeEx(element->local_path.c_str(), flags);
+  bool opened = ImGui::TreeNodeEx(element->local_path.string().c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
     Logger::Info("Clicked {}", element->full_path.string());
-    if (LoadFile(element->full_path)) {
+    if (LoadFile(element->full_path.string())) {
     }
   }
   return opened;

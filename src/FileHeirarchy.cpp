@@ -29,7 +29,7 @@ void FileHeirarchy::AddFile(const std::string& dir, const std::string& filename)
 
       auto& children = current->children;
       if (children.find(part) == children.end()) {
-          children[part] = new FileHeirarchy::HeirarchyElement(part, full_path, is_file ? HeirarchyElementType::FILE : HeirarchyElementType::FOLDER);
+          children[part] = new FileHeirarchy::HeirarchyElement(part, full_path.string(), is_file ? HeirarchyElementType::FILE : HeirarchyElementType::FOLDER);
       }
 
       current = children[part];
