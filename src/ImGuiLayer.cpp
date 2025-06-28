@@ -267,7 +267,35 @@ int ImGuiLayer::TextEditCallbackStub(ImGuiInputTextCallbackData* data) {
 }
 
 void ImGuiLayer::DrawLLDBCommandWindow() {
+  static char inputBuf[256];
+  static ImVector<std::string> items;
   ImGui::Begin("Command Window");
+
+  const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+  if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_HorizontalScrollbar)) {
+    for (const auto& item : items) {
+      ImGui::TextUnformatted(item.c_str());
+    }
+  }
+  ImGui::EndChild();
+
+  // Input field
+  bool reclaim_focus = false;
+  ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+  if (ImGui::InputText("Input", inputBuf, IM_ARRAYSIZE(inputBuf), input_text_flags, &TextEditCallbackStub, (void*)this))
+  {
+      items.push_back(std::string(inputBuf));
+      auto result = window_ref->GetDebuggerCtx().ExecCommand(inputBuf);
+      switch (result) {
+        case LLDBDebugger::ExecResult::Ok:
+          Logger::Todo("ExecResult::Ok unimplemented");
+          break;
+        default:
+          Logger::Crit("ExecCommand failed {}", (int)result);
+      }
+      reclaim_focus = true;
+  }
+
 
   ImGui::End();
 }
