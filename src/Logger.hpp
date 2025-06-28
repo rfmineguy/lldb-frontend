@@ -31,6 +31,12 @@ class Logger {
       std::string formatted = std::format(fmt, std::forward<Args>(args)...);
       std::print("{}[Info] {}\n", std::string(log_depth * LOG_SPACING, ' '), formatted);
     }
+
+    template<typename... Args>
+    static void Warn(const std::format_string<Args...> fmt, Args&&... args) {
+      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
+      std::print("{}[Warn] {}\n", std::string(log_depth * LOG_SPACING, ' '), formatted);
+    }
 };
 
 #endif
