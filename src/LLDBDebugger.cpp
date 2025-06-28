@@ -18,3 +18,7 @@ lldb::SBDebugger& LLDBDebugger::GetDebugger() {
 lldb::SBTarget& LLDBDebugger::GetTarget() {
   return target;
 }
+
+LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command) {
+  return ExecResult::Ok;
+}

@@ -1,5 +1,8 @@
 #include "ImGuiLayer.hpp"
+#include "ImGuiCustomWidgets.hpp"
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <tinyfiledialogs.h>
@@ -77,6 +80,10 @@ void ImGuiLayer::Draw() {
   DrawDebugWindow();
   DrawCodeWindow();
   DrawFileBrowser();
+  DrawStackTraceWindow();
+  DrawControlsWindow();
+  DrawBreakpointsWindow();
+  DrawLLDBCommandWindow();
 }
 
 bool ImGuiLayer::LoadFile(const std::string& fullpath) {
@@ -86,10 +93,13 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
 
     fileContentsMap[fullpath];
     std::ifstream f(fullpath);
+    FileContext& ctx = fileContentsMap.at(fullpath);
+    ctx.filename = fullpath;
+
     if (f.is_open()) {
       std::string line;
       while (std::getline(f, line)) {
-        fileContentsMap.at(fullpath).emplace_back(line);
+        ctx.lines.emplace_back(line);
       }
       f.close();
     }
@@ -163,8 +173,50 @@ void ImGuiLayer::DrawDebugWindow() {
   ImGui::End();
 }
 
+void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
+  for (int i = 0; i < fctx.lines.size(); i++) {
+    auto& line = fctx.lines.at(i);
+    ImGui::PushID(i);
+    ImGuiCustom::Breakpoint(i, line.bp); ImGui::SameLine();
+    ImVec2 cursor = ImGui::GetCursorScreenPos();
+    ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
+    ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
+    ImGui::GetWindowDrawList()->AddRectFilled(
+        cursor,
+        cursor + line_size,
+        i % 2 == 0 ? ImGui::GetColorU32(ImGuiCol_Button) : ImGui::GetColorU32(ImGuiCol_ButtonHovered),
+        0.f);
+    ImGui::Text("[%d] | %s", i, line.line.c_str());
+    ImGui::PopID();
+  }
+}
+
 void ImGuiLayer::DrawCodeWindow() {
   ImGui::Begin("Code Window");
+  ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable;
+  if (ImGui::BeginTabBar("Code File Tabs", tab_bar_flags)) {
+    for (auto& file : openFiles) {
+      if (ImGui::BeginTabItem(file->local_path.c_str())) {
+        DrawCodeFile(fileContentsMap.at(file->full_path));
+        ImGui::EndTabItem();
+      }
+    }
+    ImGui::EndTabBar();
+  }
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawStackTraceWindow() {
+  ImGui::Begin("Stack Trace");
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawControlsWindow() {
+  ImGui::Begin("Controls");
+  if (ImGui::Button("Continue")) {}
+  if (ImGui::Button("Step Into")) {}
+  if (ImGui::Button("Step Over")) {}
+  if (ImGui::Button("Next")) {}
   ImGui::End();
 }
 
@@ -177,7 +229,14 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   bool opened = ImGui::TreeNodeEx(element->local_path.string().c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
     Logger::Info("Clicked {}", element->full_path.string());
+<<<<<<< HEAD
     if (LoadFile(element->full_path.string())) {
+=======
+    if (LoadFile(element->full_path)) {
+      if (std::find(openFiles.begin(), openFiles.end(), element) == openFiles.end()) {
+        openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
+      }
+>>>>>>> 1c6c6b0d344605d9a8aebe376ad81facde39962d
     }
   }
   return opened;
@@ -197,6 +256,57 @@ void ImGuiLayer::DrawFileBrowser() {
   ImGui::Begin("File Browser");
 
   FileHeirarchyRecursive(fh.GetRoot());
+
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawBreakpointsWindow() {
+  ImGui::Begin("Breakpoints");
+  const auto& target = window_ref->GetDebuggerCtx().GetTarget();
+  int numBreakpoints = target.GetNumBreakpoints();
+  for (int i = 0; i < numBreakpoints; i++) {
+    auto bp = target.GetBreakpointAtIndex(i);
+    auto id = bp.GetID();
+    ImGui::Text("%d", id);
+  }
+  ImGui::End();
+}
+
+int ImGuiLayer::TextEditCallbackStub(ImGuiInputTextCallbackData* data) {
+  ImGuiLayer* _this = (ImGuiLayer*)data->UserData;
+  return 1;
+}
+
+void ImGuiLayer::DrawLLDBCommandWindow() {
+  static char inputBuf[256];
+  static ImVector<std::string> items;
+  ImGui::Begin("Command Window");
+
+  const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+  if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, -footer_height_to_reserve), ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_HorizontalScrollbar)) {
+    for (const auto& item : items) {
+      ImGui::TextUnformatted(item.c_str());
+    }
+  }
+  ImGui::EndChild();
+
+  // Input field
+  bool reclaim_focus = false;
+  ImGuiInputTextFlags input_text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_EscapeClearsAll | ImGuiInputTextFlags_CallbackCompletion | ImGuiInputTextFlags_CallbackHistory;
+  if (ImGui::InputText("Input", inputBuf, IM_ARRAYSIZE(inputBuf), input_text_flags, &TextEditCallbackStub, (void*)this))
+  {
+      items.push_back(std::string(inputBuf));
+      auto result = window_ref->GetDebuggerCtx().ExecCommand(inputBuf);
+      switch (result) {
+        case LLDBDebugger::ExecResult::Ok:
+          Logger::Todo("ExecResult::Ok unimplemented");
+          break;
+        default:
+          Logger::Crit("ExecCommand failed {}", (int)result);
+      }
+      reclaim_focus = true;
+  }
+
 
   ImGui::End();
 }
