@@ -34,7 +34,7 @@ class FileHeirarchy {
 
   private:
     void Free(HeirarchyElement* root);
-    void PrintRec(HeirarchyElement* root, int depth = 0) const;
+    void PrintRec(const HeirarchyElement* root, int depth = 0) const;
 
   private:
     HeirarchyElement* mainRoot;

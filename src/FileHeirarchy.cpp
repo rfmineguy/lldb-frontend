@@ -1,4 +1,5 @@
 #include "FileHeirarchy.hpp"
+#include "Logger.hpp"
 #include <iostream>
 
 FileHeirarchy::FileHeirarchy(): mainRoot(new HeirarchyElement("/", "/")) {}
@@ -34,19 +35,19 @@ void FileHeirarchy::AddFile(const std::string& dir, const std::string& filename)
       current = children[part];
   }
 
-  std::cout << "Added '" << dir << "' , '" << filename << "'" << std::endl;
+  Logger::Info("Added '{}' , '{}'", dir, filename);
 }
 
-void FileHeirarchy::PrintRec(FileHeirarchy::HeirarchyElement* root, int depth) const {
+void FileHeirarchy::PrintRec(const FileHeirarchy::HeirarchyElement* root, int depth) const {
   if (!root) return;
   
   // Is it a folder or a file?
   switch (root->type) {
     case FileHeirarchy::HeirarchyElementType::FOLDER:
-      std::cout << std::string(depth, ' ') << root->local_path<< "/" << std::endl;
+      Logger::Info("{}{}", std::string(depth * 2, ' '), root->local_path.filename().string());
       break;
     case FileHeirarchy::HeirarchyElementType::FILE:
-      std::cout << std::string(depth, ' ') << root->local_path.filename() << std::endl;
+      Logger::Info("{}{}", std::string(depth * 2, ' '), root->local_path.filename().string());
       break;
   }
 
@@ -57,10 +58,9 @@ void FileHeirarchy::PrintRec(FileHeirarchy::HeirarchyElement* root, int depth) c
 }
 
 void FileHeirarchy::Print() const {
-  std::cout << "Printing file heirarchy\n" << std::endl;
-  std::cout << "=======================\n" << std::endl;
-
+  Logger::BeginGroup("FileHeirarchy::Print");
   PrintRec(mainRoot, 0);
+  Logger::EndGroup();
 }
 
 FileHeirarchy::HeirarchyElement* FileHeirarchy::GetRoot() const {
