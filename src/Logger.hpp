@@ -24,6 +24,13 @@ class Logger {
   public:
     static void BeginLine(const std::string&);
     static void EndLine();
+
+  public:
+    template<typename... Args>
+    static void Info(const std::format_string<Args...> fmt, Args&&... args) {
+      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
+      std::print("{}[Info] {}\n", std::string(log_depth * LOG_SPACING, ' '), formatted);
+    }
 };
 
 #endif
