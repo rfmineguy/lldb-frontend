@@ -1,7 +1,7 @@
 #include "FileHeirarchy.hpp"
 #include <iostream>
 
-FileHeirarchy::FileHeirarchy(): mainRoot(new HeirarchyElement("/")) {}
+FileHeirarchy::FileHeirarchy(): mainRoot(new HeirarchyElement("/", "/")) {}
 FileHeirarchy::~FileHeirarchy() {
   Free(mainRoot);
 }
@@ -28,7 +28,7 @@ void FileHeirarchy::AddFile(const std::string& dir, const std::string& filename)
 
       auto& children = current->children;
       if (children.find(part) == children.end()) {
-          children[part] = new FileHeirarchy::HeirarchyElement(part, is_file ? HeirarchyElementType::FILE : HeirarchyElementType::FOLDER);
+          children[part] = new FileHeirarchy::HeirarchyElement(part, full_path, is_file ? HeirarchyElementType::FILE : HeirarchyElementType::FOLDER);
       }
 
       current = children[part];
@@ -43,10 +43,10 @@ void FileHeirarchy::PrintRec(FileHeirarchy::HeirarchyElement* root, int depth) c
   // Is it a folder or a file?
   switch (root->type) {
     case FileHeirarchy::HeirarchyElementType::FOLDER:
-      std::cout << std::string(depth, ' ') << root->path << "/" << std::endl;
+      std::cout << std::string(depth, ' ') << root->local_path<< "/" << std::endl;
       break;
     case FileHeirarchy::HeirarchyElementType::FILE:
-      std::cout << std::string(depth, ' ') << root->path.filename() << std::endl;
+      std::cout << std::string(depth, ' ') << root->local_path.filename() << std::endl;
       break;
   }
 

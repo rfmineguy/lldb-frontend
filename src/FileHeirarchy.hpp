@@ -11,12 +11,18 @@ class FileHeirarchy {
     };
     struct HeirarchyElement {
       HeirarchyElementType type;
-      std::filesystem::path path;
+      std::filesystem::path local_path;
+      std::filesystem::path full_path;
 
       std::map<std::string, HeirarchyElement*> children;
 
-      HeirarchyElement(const std::string& path, HeirarchyElementType type = HeirarchyElementType::FOLDER):
-        path(path),
+      HeirarchyElement(
+          const std::string& local_path,
+          const std::string& full_path,
+          HeirarchyElementType type = HeirarchyElementType::FOLDER
+      ):
+        local_path(local_path),
+        full_path(full_path),
         type(type) {}
     };
   public:
