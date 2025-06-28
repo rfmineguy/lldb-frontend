@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 struct Window;
+struct ImGuiInputTextCallbackData;
 
 class ImGuiLayer {
   public:
@@ -22,13 +23,26 @@ class ImGuiLayer {
   private:
     void DrawDebugWindow();
     void DrawCodeWindow();
+    void DrawStackTraceWindow();
+    void DrawControlsWindow();
+    void DrawBreakpointsWindow();
+    void DrawLLDBCommandWindow();
+
     bool ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement*);
     void FileHeirarchyRecursive(const FileHeirarchy::HeirarchyElement*);
     void DrawFileBrowser();
+
+  private:
+    void DrawCodeFile(FileContext&);
+
+  private:
+    static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
+
   private:
     Window* window_ref;
     FileHeirarchy fh;
     std::unordered_map<std::string, FileContext> fileContentsMap;
+    std::vector<FileHeirarchy::HeirarchyElement*> openFiles;
 };
 
 #endif

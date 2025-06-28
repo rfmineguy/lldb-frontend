@@ -1,4 +1,5 @@
 #include "ImGuiLayer.hpp"
+#include "ImGuiCustomWidgets.hpp"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -79,6 +80,10 @@ void ImGuiLayer::Draw() {
   DrawDebugWindow();
   DrawCodeWindow();
   DrawFileBrowser();
+  DrawStackTraceWindow();
+  DrawControlsWindow();
+  DrawBreakpointsWindow();
+  DrawLLDBCommandWindow();
 }
 
 bool ImGuiLayer::LoadFile(const std::string& fullpath) {
@@ -168,8 +173,21 @@ void ImGuiLayer::DrawDebugWindow() {
   ImGui::End();
 }
 
+void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
+}
+
 void ImGuiLayer::DrawCodeWindow() {
   ImGui::Begin("Code Window");
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawStackTraceWindow() {
+  ImGui::Begin("Stack Trace");
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawControlsWindow() {
+  ImGui::Begin("Controls");
   ImGui::End();
 }
 
@@ -202,6 +220,22 @@ void ImGuiLayer::DrawFileBrowser() {
   ImGui::Begin("File Browser");
 
   FileHeirarchyRecursive(fh.GetRoot());
+
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawBreakpointsWindow() {
+  ImGui::Begin("Breakpoints");
+  ImGui::End();
+}
+
+int ImGuiLayer::TextEditCallbackStub(ImGuiInputTextCallbackData* data) {
+  ImGuiLayer* _this = (ImGuiLayer*)data->UserData;
+  return 1;
+}
+
+void ImGuiLayer::DrawLLDBCommandWindow() {
+  ImGui::Begin("Command Window");
 
   ImGui::End();
 }
