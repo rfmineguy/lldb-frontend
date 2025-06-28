@@ -258,6 +258,13 @@ void ImGuiLayer::DrawFileBrowser() {
 
 void ImGuiLayer::DrawBreakpointsWindow() {
   ImGui::Begin("Breakpoints");
+  const auto& target = window_ref->GetDebuggerCtx().GetTarget();
+  int numBreakpoints = target.GetNumBreakpoints();
+  for (int i = 0; i < numBreakpoints; i++) {
+    auto bp = target.GetBreakpointAtIndex(i);
+    auto id = bp.GetID();
+    ImGui::Text("%d", id);
+  }
   ImGui::End();
 }
 
