@@ -229,14 +229,10 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   bool opened = ImGui::TreeNodeEx(element->local_path.string().c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
     Logger::Info("Clicked {}", element->full_path.string());
-<<<<<<< HEAD
-    if (LoadFile(element->full_path.string())) {
-=======
     if (LoadFile(element->full_path)) {
       if (std::find(openFiles.begin(), openFiles.end(), element) == openFiles.end()) {
         openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
       }
->>>>>>> 1c6c6b0d344605d9a8aebe376ad81facde39962d
     }
   }
   return opened;
