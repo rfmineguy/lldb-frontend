@@ -3,16 +3,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(FetchContent)
 
 # ================================================
-#     Setup test executable
-# ================================================
-project(lldb-frontend-test LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 23)
-
-# ================================================
 #     Setup project
 # ================================================
-project(lldb-frontend LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 23)
+project(lldb-frontend LANGUAGES C CXX)
 
 # ================================================
 #     Setup libraries with FetchContent
