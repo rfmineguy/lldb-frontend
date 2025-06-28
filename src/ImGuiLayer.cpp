@@ -193,6 +193,16 @@ void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
 
 void ImGuiLayer::DrawCodeWindow() {
   ImGui::Begin("Code Window");
+  ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable;
+  if (ImGui::BeginTabBar("Code File Tabs", tab_bar_flags)) {
+    for (auto& file : openFiles) {
+      if (ImGui::BeginTabItem(file->local_path.c_str())) {
+        DrawCodeFile(fileContentsMap.at(file->full_path));
+        ImGui::EndTabItem();
+      }
+    }
+    ImGui::EndTabBar();
+  }
   ImGui::End();
 }
 
