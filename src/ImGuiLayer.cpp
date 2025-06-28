@@ -1,5 +1,7 @@
 #include "ImGuiLayer.hpp"
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <tinyfiledialogs.h>
@@ -86,10 +88,13 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
 
     fileContentsMap[fullpath];
     std::ifstream f(fullpath);
+    FileContext& ctx = fileContentsMap.at(fullpath);
+    ctx.filename = fullpath;
+
     if (f.is_open()) {
       std::string line;
       while (std::getline(f, line)) {
-        fileContentsMap.at(fullpath).emplace_back(line);
+        ctx.lines.emplace_back(line);
       }
       f.close();
     }
