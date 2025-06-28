@@ -6,13 +6,13 @@ include(FetchContent)
 #     Setup test executable
 # ================================================
 project(lldb-frontend-test LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # ================================================
 #     Setup project
 # ================================================
 project(lldb-frontend LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # ================================================
 #     Setup libraries with FetchContent
@@ -63,7 +63,8 @@ set(SOURCES
   src/ImGuiLayer.cpp
   src/LLDBDebugger.cpp
   src/FileHeirarchy.cpp
-  src/Util.cpp)
+  src/Util.cpp
+  src/Logger.cpp)
 
 add_executable(lldb-frontend ${SOURCES})
 
