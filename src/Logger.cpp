@@ -23,3 +23,9 @@ void Logger::EndGroup() {
   std::print("{}[{}]\n", std::string(log_depth * LOG_SPACING, ' '), groupStack.top());
   groupStack.pop();
 }
+void Logger::BeginLine(const std::string& tag) {
+  assert(0 && "Unimplemented");
+}
+void Logger::EndLine() {
+  assert(0 && "Unimplemented");
+}
