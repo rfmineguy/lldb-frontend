@@ -1,6 +1,7 @@
 #ifndef IMGUI_LAYER_HPP
 #define IMGUI_LAYER_HPP
 #include "FileHeirarchy.hpp"
+#include "FileContext.hpp"
 #include <unordered_map>
 #include <vector>
 struct Window;
@@ -27,7 +28,7 @@ class ImGuiLayer {
   private:
     Window* window_ref;
     FileHeirarchy fh;
-    std::unordered_map<std::string, std::vector<std::string>> fileContentsMap;
+    std::unordered_map<std::string, FileContext> fileContentsMap;
 };
 
 #endif
