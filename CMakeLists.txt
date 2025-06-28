@@ -61,6 +61,7 @@ set(SOURCES
   src/Window.cpp 
   src/Init.cpp 
   src/ImGuiLayer.cpp
+  src/ImGuiCustomWidgets.cpp
   src/LLDBDebugger.cpp
   src/FileHeirarchy.cpp
   src/Util.cpp
