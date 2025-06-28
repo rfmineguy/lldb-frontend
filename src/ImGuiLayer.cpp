@@ -205,6 +205,9 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   if (isLeaf && ImGui::IsItemClicked(0)) {
     Logger::Info("Clicked {}", element->full_path.string());
     if (LoadFile(element->full_path)) {
+      if (std::find(openFiles.begin(), openFiles.end(), element) == openFiles.end()) {
+        openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
+      }
     }
   }
   return opened;
