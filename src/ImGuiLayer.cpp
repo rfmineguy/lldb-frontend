@@ -188,6 +188,10 @@ void ImGuiLayer::DrawStackTraceWindow() {
 
 void ImGuiLayer::DrawControlsWindow() {
   ImGui::Begin("Controls");
+  if (ImGui::Button("Continue")) {}
+  if (ImGui::Button("Step Into")) {}
+  if (ImGui::Button("Step Over")) {}
+  if (ImGui::Button("Next")) {}
   ImGui::End();
 }
 
