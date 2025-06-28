@@ -168,8 +168,8 @@ void ImGuiLayer::DrawDebugWindow() {
         lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
         auto directory = cu.GetFileSpec().GetDirectory();
         auto name = cu.GetFileSpec().GetFilename();
-
-        fh.AddFile(directory, name);
+        if (directory && name)
+          fh.AddFile(directory, name);
       }
     }
     fh.Print();
