@@ -149,9 +149,17 @@ void ImGuiLayer::DrawDebugWindow() {
 
   // Load Example Exe
   if (ImGui::Button("Load Example Exe")) {
+    auto program_directory = Util::GetCurrentProgramDirectory();
+
+    auto target_path = (program_directory / "lldb-frontend-test").string();
+
+#ifdef _WIN32
+    target_path += ".exe";
+#endif
+
     auto target = window_ref->GetDebuggerCtx()
       .GetDebugger()
-      .CreateTarget("/Users/rileyfischer/Documents/dev/lldb-frontend/build/lldb-frontend-test");
+      .CreateTarget(target_path.c_str());
 
     window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
     for (size_t i = 0; i < target.GetNumModules(); i++) {
