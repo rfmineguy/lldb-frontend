@@ -62,6 +62,7 @@ set(SOURCES
   src/Init.cpp 
   src/ImGuiLayer.cpp
   src/LLDBDebugger.cpp
+  src/FileHeirarchy.cpp
   src/Util.cpp)
 
 add_executable(lldb-frontend ${SOURCES})
