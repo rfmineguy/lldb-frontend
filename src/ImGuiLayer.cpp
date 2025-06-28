@@ -4,6 +4,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <tinyfiledialogs.h>
 #include <iostream>
+#include <fstream>
 #include "Window.hpp"
 #include "Util.hpp"
 
@@ -77,6 +78,30 @@ void ImGuiLayer::Draw() {
   DrawFileBrowser();
 }
 
+bool ImGuiLayer::LoadFile(const std::string& fullpath) {
+  if (!fileContentsMap.contains(fullpath)) {
+    fileContentsMap[fullpath];
+    // Read file line by line
+    std::cout << "Loading: " << fullpath << std::endl;
+    std::ifstream f(fullpath);
+    if (f.is_open()) {
+      std::string line;
+      while (std::getline(f, line)) {
+        fileContentsMap.at(fullpath).emplace_back(line);
+      }
+      f.close();
+    }
+    else {
+      std::cerr << "Error: Failed to read '" << fullpath << "'" << std::endl;
+      return false;
+    }
+  }
+  else {
+    std::cout << "INFO: " << fullpath << ", already loaded" << std::endl;
+  }
+  return true;
+}
+
 void ImGuiLayer::DrawDebugWindow() {
   ImGui::Begin("Debug");
   // Open File Dialog
@@ -145,9 +170,16 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
   if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
 
-  bool opened = ImGui::TreeNodeEx(element->path.c_str(), flags);
+  bool opened = ImGui::TreeNodeEx(element->local_path.c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
-    std::cout << "Clicked " << element->path << std::endl;
+    std::cout << "Clicked " << element->full_path << std::endl;
+    if (LoadFile(element->full_path)) {
+      // std::cout << "Contents (" << element->full_path << ")" << std::endl;
+      // const auto& lines = fileContentsMap.at(element->full_path);
+      // for (const auto& line : lines) {
+      //   std::cout << line << std::endl;
+      // }
+    }
     // do something
   }
   return opened;

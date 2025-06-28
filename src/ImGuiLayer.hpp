@@ -14,6 +14,9 @@ class ImGuiLayer {
     void Draw();
 
   private:
+    bool LoadFile(const std::string&);
+
+  private:
     void DrawDebugWindow();
     void DrawCodeWindow();
     bool ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement*);
@@ -22,6 +25,7 @@ class ImGuiLayer {
   private:
     Window* window_ref;
     FileHeirarchy fh;
+    std::unordered_map<std::string, std::vector<std::string>> fileContentsMap;
 };
 
 #endif
