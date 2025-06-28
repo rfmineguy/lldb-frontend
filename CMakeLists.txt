@@ -3,16 +3,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(FetchContent)
 
 # ================================================
-#     Setup test executable
-# ================================================
-project(lldb-frontend-test LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 23)
-
-# ================================================
 #     Setup project
 # ================================================
-project(lldb-frontend LANGUAGES C CXX OBJC)
-set(CMAKE_CXX_STANDARD 23)
+project(lldb-frontend LANGUAGES C CXX)
 
 # ================================================
 #     Setup libraries with FetchContent
@@ -32,25 +25,7 @@ endif()
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
 
-# ================================================
-#     Setup LLVM prefix
-# ================================================
-if(APPLE)
-  execute_process(COMMAND brew --prefix llvm
-                  OUTPUT_VARIABLE LLVM_PREFIX
-                  OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if (LLVM_PREFIX)
-    list(APPEND CMAKE_PREFIX_PATH "${LLVM_PREFIX}/lib/cmake")
-  endif()
-else()
-  message(FATAL_ERROR "Your platform is not supported yet.")
-endif()
-
-# ================================================
-#     Setup LLVM prefix
-# ================================================
-set(LLDB_INCLUDE_DIR "${LLVM_PREFIX}/include/")
-set(LLDB_LIB_DIR "${LLVM_PREFIX}/lib/")
+include(cmake/LLVM.cmake)
 
 
 # ================================================
@@ -68,14 +43,15 @@ set(SOURCES
   src/Logger.cpp)
 
 add_executable(lldb-frontend ${SOURCES})
+target_compile_features(lldb-frontend PRIVATE cxx_std_23)
 
-message(${CMAKE_SOURCE_DIR})
-target_link_libraries(lldb-frontend PRIVATE lldb glfw glad imgui tfd)
-target_link_directories(lldb-frontend PRIVATE ${LLDB_LIB_DIR})
-target_include_directories(lldb-frontend PRIVATE ${LLDB_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/libs/glad/include ${CMAKE_SOURCE_DIR}/libs/tfd)
+target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb)
+target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
+target_include_directories(lldb-frontend PRIVATE ${LLVM_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/libs/glad/include ${CMAKE_SOURCE_DIR}/libs/tfd)
 
 set(TEST_SOURCES
   test/test.cpp
   test/test_support.cpp)
 
 add_executable(lldb-frontend-test ${TEST_SOURCES})
+target_compile_features(lldb-frontend-test PRIVATE cxx_std_23)

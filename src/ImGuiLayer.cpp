@@ -149,9 +149,17 @@ void ImGuiLayer::DrawDebugWindow() {
 
   // Load Example Exe
   if (ImGui::Button("Load Example Exe")) {
+    auto program_directory = Util::GetCurrentProgramDirectory();
+
+    auto target_path = (program_directory / "lldb-frontend-test").string();
+
+#ifdef _WIN32
+    target_path += ".exe";
+#endif
+
     auto target = window_ref->GetDebuggerCtx()
       .GetDebugger()
-      .CreateTarget("/Users/rileyfischer/Documents/dev/lldb-frontend/build/lldb-frontend-test");
+      .CreateTarget(target_path.c_str());
 
     window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
     for (size_t i = 0; i < target.GetNumModules(); i++) {
@@ -160,8 +168,8 @@ void ImGuiLayer::DrawDebugWindow() {
         lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
         auto directory = cu.GetFileSpec().GetDirectory();
         auto name = cu.GetFileSpec().GetFilename();
-
-        fh.AddFile(directory, name);
+        if (directory && name)
+          fh.AddFile(directory, name);
       }
     }
     fh.Print();
@@ -196,8 +204,10 @@ void ImGuiLayer::DrawCodeWindow() {
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable;
   if (ImGui::BeginTabBar("Code File Tabs", tab_bar_flags)) {
     for (auto& file : openFiles) {
-      if (ImGui::BeginTabItem(file->local_path.c_str())) {
-        DrawCodeFile(fileContentsMap.at(file->full_path));
+      auto local_path_string = file->local_path.string();
+      auto full_path_string = file->full_path.string();
+      if (ImGui::BeginTabItem(local_path_string.c_str())) {
+        DrawCodeFile(fileContentsMap.at(full_path_string));
         ImGui::EndTabItem();
       }
     }
@@ -226,10 +236,11 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
   if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
 
-  bool opened = ImGui::TreeNodeEx(element->local_path.c_str(), flags);
+  bool opened = ImGui::TreeNodeEx(element->local_path.string().c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
-    Logger::Info("Clicked {}", element->full_path.string());
-    if (LoadFile(element->full_path)) {
+    auto element_full_path_string = element->full_path.string();
+    Logger::Info("Clicked {}", element_full_path_string);
+    if (LoadFile(element_full_path_string)) {
       if (std::find(openFiles.begin(), openFiles.end(), element) == openFiles.end()) {
         openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
       }

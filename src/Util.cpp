@@ -1,6 +1,13 @@
 #include "Util.hpp"
 #include "Logger.hpp"
 #include <iostream>
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#elif defined(__linux__)
+#include <unistd.h>
+#endif
 
 namespace Util {
   void PrintTargetModules(lldb::SBTarget& target) {
@@ -32,5 +39,33 @@ namespace Util {
         Logger::Info("FileSpec Path: {}", path);
       }
     }
+  }
+
+  std::filesystem::path GetCurrentProgramDirectory()
+  {
+    std::filesystem::path exePath;
+
+#if defined(_WIN32)
+    char path[MAX_PATH];
+    DWORD length = GetModuleFileNameA(NULL, path, MAX_PATH);
+    if (length > 0 && length < MAX_PATH)
+    {
+        exePath = std::filesystem::canonical(path);
+    }
+
+#elif defined(__APPLE__)
+    char path[1024];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) == 0)
+    {
+        exePath = std::filesystem::canonical(path);
+    }
+
+#elif defined(__linux__)
+    exePath = std::filesystem::canonical("/proc/self/exe");
+
+#endif
+
+    return exePath.parent_path();
   }
 }

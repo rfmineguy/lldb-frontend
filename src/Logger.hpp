@@ -4,6 +4,7 @@
 #include <stack>
 #include <iostream>
 #include <format>
+#include <print>
 
 #define LOG_SPACING 4
 class Logger {
