@@ -72,26 +72,101 @@ void ImGuiLayer::EndDockspace() {
   ImGui::End();
 }
 void ImGuiLayer::Draw() {
-  ImGui::Begin("Code Window");
+  DrawDebugWindow();
+  DrawCodeWindow();
+  DrawFileBrowser();
+}
+
+void ImGuiLayer::DrawDebugWindow() {
+  ImGui::Begin("Debug");
+  // Open File Dialog
   if (ImGui::Button("Open File Dialog")) {
     const char* fdpath = tinyfd_openFileDialog("Choose File", "", 0, NULL, "executables", 0);
-    std::cout << "Path: " << fdpath << std::endl;
+    if (fdpath) {
+      std::cout << "Path: " << fdpath << std::endl;
 
-    auto target = window_ref->GetDebuggerCtx()
-      .GetDebugger()
-      .CreateTarget(fdpath);
+      auto target = window_ref->GetDebuggerCtx()
+        .GetDebugger()
+        .CreateTarget(fdpath);
 
-    Util::PrintTargetModules(target);
-    Util::PrintModuleCompileUnits(target, 0);
+      window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
+
+      for (size_t i = 0; i < target.GetNumModules(); i++) {
+        lldb::SBModule mod = target.GetModuleAtIndex(i);
+        for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
+          lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
+          auto directory = cu.GetFileSpec().GetDirectory();
+          auto name = cu.GetFileSpec().GetFilename();
+
+          fh.AddFile(directory, name);
+        }
+      }
+      fh.Print();
+
+      Util::PrintTargetModules(target);
+      Util::PrintModuleCompileUnits(target, 0);
+    }
   }
 
+  // Load Example Exe
   if (ImGui::Button("Load Example Exe")) {
     auto target = window_ref->GetDebuggerCtx()
       .GetDebugger()
       .CreateTarget("/Users/rileyfischer/Documents/dev/lldb-frontend/build/lldb-frontend-test");
 
+    window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
+    for (size_t i = 0; i < target.GetNumModules(); i++) {
+      lldb::SBModule mod = target.GetModuleAtIndex(i);
+      for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
+        lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
+        auto directory = cu.GetFileSpec().GetDirectory();
+        auto name = cu.GetFileSpec().GetFilename();
+
+        fh.AddFile(directory, name);
+      }
+    }
+    fh.Print();
+    fh.GetRoot();
+
     Util::PrintTargetModules(target);
     Util::PrintModuleCompileUnits(target, 0);
   }
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawCodeWindow() {
+  ImGui::Begin("Code Window");
+  ImGui::End();
+}
+
+bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* element) {
+  bool isLeaf = element->children.empty();
+
+  ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+  if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
+
+  bool opened = ImGui::TreeNodeEx(element->path.c_str(), flags);
+  if (isLeaf && ImGui::IsItemClicked(0)) {
+    std::cout << "Clicked " << element->path << std::endl;
+    // do something
+  }
+  return opened;
+}
+
+void ImGuiLayer::FileHeirarchyRecursive(const FileHeirarchy::HeirarchyElement* element) {
+  if (element == nullptr) return;
+  if (ShowHeirarchyItem(element)) {
+    for (auto& [key, child] : element->children) {
+      FileHeirarchyRecursive(child);
+    }
+    ImGui::TreePop();
+  }
+}
+
+void ImGuiLayer::DrawFileBrowser() {
+  ImGui::Begin("File Browser");
+
+  FileHeirarchyRecursive(fh.GetRoot());
+
   ImGui::End();
 }
