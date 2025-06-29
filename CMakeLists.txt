@@ -8,6 +8,10 @@ include(FetchContent)
 include(cmake/Version.cmake)
 project(lldb-frontend LANGUAGES C CXX VERSION ${LDBF_V_MAJ}.${LDBF_V_MIN}.${LDBF_V_PAT}.${LDBF_V_TWE})
 
+if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  message(FATAL_ERROR "Build must be set to Debug")
+endif()
+
 FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(glfw)
 
