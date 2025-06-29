@@ -337,40 +337,44 @@ void ImGuiLayer::DrawFilesNotFoundModal()
 {
   if (m_FilesNotFoundModal_open)
   {
-    ImGui::OpenPopup("Delete?");
-
-    // Always center this window when appearing
-    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-
-    if (ImGui::BeginPopupModal("FilesNotFound", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    if (ImGui::TreeNode("FilesNotFoundModal"))
     {
-        ImGui::Text("The following files were not found:");
-        ImGui::Separator();
+      ImGui::OpenPopup("FilesNotFound");
 
-        for (auto& element : m_FilesNotFoundModal_files)
-        {
-          static int clicked = 0;
-          if (ImGui::Button(element->c_str))
-              clicked++;
-          if (clicked & 1)
+      // Always center this window when appearing
+      ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+      ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+      if (ImGui::BeginPopupModal("FilesNotFound", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+      {
+          ImGui::Text("The following files were not found:");
+          ImGui::Separator();
+
+          for (auto& element : m_FilesNotFoundModal_files)
           {
-              ImGui::SameLine();
-              ImGui::Text("Thanks for clicking me!");
+            static int clicked = 0;
+            if (ImGui::Button(element->c_str))
+                clicked++;
+            if (clicked & 1)
+            {
+                ImGui::SameLine();
+                ImGui::Text("Thanks for clicking me!");
+            }
           }
-        }
 
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
-          m_FilesNotFoundModal_open = false;
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::SetItemDefaultFocus();
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-          m_FilesNotFoundModal_open = false;
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::EndPopup();
+          if (ImGui::Button("OK", ImVec2(120, 0))) {
+            m_FilesNotFoundModal_open = false;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SetItemDefaultFocus();
+          ImGui::SameLine();
+          if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            m_FilesNotFoundModal_open = false;
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::EndPopup();
+      }
+      ImGui::TreePop();
     }
   }
 }
