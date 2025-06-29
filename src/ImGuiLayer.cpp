@@ -99,7 +99,7 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
     if (f.is_open()) {
       std::string line;
       while (std::getline(f, line)) {
-        ctx.lines.emplace_back(line);
+        ctx.lines.push_back({.line = line});
       }
       f.close();
     }
