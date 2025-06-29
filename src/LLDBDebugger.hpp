@@ -1,6 +1,7 @@
 #ifndef LLDB_DEBUGGER_HPP
 #define LLDB_DEBUGGER_HPP
 #include <lldb/API/LLDB.h>
+#include <string>
 
 class LLDBDebugger {
   public:
