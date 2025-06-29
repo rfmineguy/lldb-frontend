@@ -55,3 +55,4 @@ set(TEST_SOURCES
 
 add_executable(lldb-frontend-test ${TEST_SOURCES})
 target_compile_features(lldb-frontend-test PRIVATE cxx_std_23)
+file(COPY imgui.ini DESTINATION ${CMAKE_BINARY_DIR}/imgui.ini)
