@@ -5,39 +5,92 @@ on:
       - run-actions
 permissions:
   contents: write
+
 jobs:
-  release:
+  checkout:
     runs-on: windows-2025
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+  download-llvm:
+    runs-on: windows-2025
+    needs: checkout
+    steps:
       - name: Download LLVM 20.1.7 archive
         run: |
           echo "Downloading LLVM with curl..."
           curl -L -# -o clang_llvm.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz
         shell: bash
 
+  extract-llvm:
+    runs-on: windows-2025
+    needs: download-llvm
+    steps:
       - name: Extract tar.xz to temp directory
         run: |
           mkdir llvm_temp
           tar -xf clang_llvm.tar.xz -C llvm_temp
         shell: bash
 
-      - name: Move extracted LLVM to C:\llvm
+      - name: Move extracted LLVM to C:\\llvm
         run: |
           $extracted = Get-ChildItem llvm_temp | Select-Object -First 1
-          Move-Item "llvm_temp\$($extracted.Name)" C:\llvm
+          Move-Item "llvm_temp\$($extracted.Name)" C:\\llvm
         shell: powershell
 
-      - name: Build Package on Windows
+  configure:
+    runs-on: windows-2025
+    needs: extract-llvm
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake
         run: |
           cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=C:/llvm/lib/cmake/llvm" -DCMAKE_VERBOSE_MAKEFILE=ON
+        shell: cmd
+
+  build:
+    runs-on: windows-2025
+    needs: configure
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Target
+        run: |
           cmake --build build --config Debug
+        shell: cmd
+
+  install:
+    runs-on: windows-2025
+    needs: build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Build
+        run: |
           cmake --install build --config Debug
+        shell: cmd
+
+  package:
+    runs-on: windows-2025
+    needs: install
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Package Artifacts
+        run: |
           cpack --config build/CPackConfig.cmake
         shell: cmd
 
+  upload:
+    runs-on: windows-2025
+    needs: package
+    steps:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
