@@ -1,3 +1,14 @@
+#include "Util.hpp"
+#include "Logger.hpp"
+#include <iostream>
+#if defined(_WIN32)
+#include <windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#elif defined(__linux__)
+#include <unistd.h>
+#endif
+
 namespace Util {
   void PrintTargetModules(lldb::SBTarget& target) {
     Logger::ScopedGroup g("PrintTargetModules");

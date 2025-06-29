@@ -1,3 +1,8 @@
+#include "Window.hpp"
+#include "Logger.hpp"
+#include <imgui.h>
+#include <glad/gl.h>
+
 Window::Window(const std::string& title, int width, int height):
   imguiLayer(debuggerCtx)
 {

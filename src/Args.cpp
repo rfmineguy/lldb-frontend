@@ -1,3 +1,5 @@
+#include "Args.hpp"
+
 namespace lldb_frontend {
   argparse::ArgumentParser Args::parser = argparse::ArgumentParser();
 

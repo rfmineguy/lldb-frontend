@@ -1,3 +1,8 @@
+#include "ImGuiCustomWidgets.hpp"
+#include "ImGuiLayer.hpp"
+#include "FileHeirarchy.hpp"
+#include "LLDBDebugger.hpp"
+#include <imgui.h>
 
 namespace ImGuiCustom {
   void Breakpoint(int id, FileHeirarchy::HeirarchyElement& element, ImGuiLayer& imguiLayer) {

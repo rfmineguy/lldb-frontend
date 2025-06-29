@@ -1,3 +1,16 @@
+#include "Init.hpp"
+#include "Logger.hpp"
+#include "Util.hpp"
+#include <iostream>
+
+#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
 namespace lldb_frontend {
   void err_callback(int error, const char* description) {
     std::cerr << "GLFWError: %s" << description << std::endl;

@@ -1,3 +1,15 @@
+#include "LLDBDebugger.hpp"
+#include "FileContext.hpp"
+#include <filesystem>
+#include <stdexcept>
+#include "Logger.hpp"
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <io.h>
+#include <windows.h>
+#endif
+
 LLDBDebugger::LLDBDebugger() {
     lldb::SBDebugger::Initialize();
     debugger = lldb::SBDebugger::Create();
