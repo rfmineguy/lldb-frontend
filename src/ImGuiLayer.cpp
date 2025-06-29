@@ -113,7 +113,6 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
     }
     else {
       Logger::Err("Failed to read {}", fullpath);
-      Logger::EndGroup();
       return false;
     }
   }
