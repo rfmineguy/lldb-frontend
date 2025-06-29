@@ -29,6 +29,7 @@ class ImGuiLayer {
     void DrawControlsWindow();
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
+    void DrawFilesNotFoundModal();
 
     bool ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement*);
     void FileHeirarchyRecursive(const FileHeirarchy::HeirarchyElement*);
@@ -46,6 +47,8 @@ class ImGuiLayer {
     FileHeirarchy fh;
     std::unordered_map<std::string, FileContext> fileContentsMap;
     std::vector<FileHeirarchy::HeirarchyElement*> openFiles;
+    bool m_FilesNotFoundModal_open = false;
+    std::vector<const FileHeirarchy::HeirarchyElement*> m_FilesNotFoundModal_files;
 };
 
 #endif
