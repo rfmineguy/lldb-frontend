@@ -34,7 +34,6 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    message(WARNING "MSVC always emits .pdb files when debug info is enabled. Use Clang instead to embed symbols.")
   else()
     message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
   endif()
@@ -74,6 +73,19 @@ set(SOURCES
 
 add_executable(lldb-frontend ${SOURCES})
 target_compile_features(lldb-frontend PRIVATE cxx_std_23)
+if(WIN32)
+  target_link_libraries(lldb-frontend
+    PRIVATE
+    ws2_32
+    secur32
+    crypt32
+    mfplat
+    mf
+    advapi32
+    iphlpapi
+    legacy_stdio_definitions
+    ucrt)
+endif()
 target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
 target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
 target_include_directories(lldb-frontend PRIVATE 
