@@ -10,6 +10,11 @@ class LLDBDebugger {
     enum class ExecResult {
       Ok,
     };
+    struct BreakpointData
+    {
+      std::string filename;
+      int line_number;
+    };
   public:
     LLDBDebugger();
     ~LLDBDebugger();
@@ -20,12 +25,15 @@ class LLDBDebugger {
 
     bool AddBreakpoint(FileContext& fctx, int id);
     bool RemoveBreakpoint(FileContext& fctx, int id);
+    BreakpointData& GetBreakpointData(lldb::break_id_t id);
 
   public:
     ExecResult ExecCommand(const std::string&);
 
   private:
     lldb::SBDebugger debugger;
+    std::unordered_map<lldb::break_id_t, BreakpointData> id_breakpoint_data;
+
 };
 
 #endif
