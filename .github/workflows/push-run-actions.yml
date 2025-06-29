@@ -6,31 +6,6 @@ on:
 permissions:
   contents: write
 jobs:
-  setup-llvm:
-    runs-on: windows-latest
-    steps:
-      - name: Download LLVM 20.1.7 archive
-        run: |
-          Invoke-WebRequest `
-            -Uri https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz `
-            -OutFile clang_llvm.tar.xz
-        shell: powershell
-
-      - name: Extract tar.xz to temp directory
-        run: |
-          mkdir llvm_temp
-          tar -xf clang_llvm.tar.xz -C llvm_temp
-        shell: bash
-
-      - name: Move extracted LLVM to C:\llvm
-        run: |
-          $extracted = Get-ChildItem llvm_temp | Select-Object -First 1
-          Move-Item "llvm_temp\$($extracted.Name)" C:\llvm
-        shell: powershell
-
-      - name: Verify LLVM location
-        run: dir C:\llvm\bin
-        shell: powershell
   release:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -55,6 +30,33 @@ jobs:
         run: |
           brew install llvm
         shell: bash
+
+      - name: Download LLVM 20.1.7 archive
+        if: runner.os == 'Windows'
+        run: |
+          Invoke-WebRequest `
+            -Uri https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz `
+            -OutFile clang_llvm.tar.xz
+        shell: powershell
+
+      - name: Extract tar.xz to temp directory
+        if: runner.os == 'Windows'
+        run: |
+          mkdir llvm_temp
+          tar -xf clang_llvm.tar.xz -C llvm_temp
+        shell: bash
+
+      - name: Move extracted LLVM to C:\llvm
+        if: runner.os == 'Windows'
+        run: |
+          $extracted = Get-ChildItem llvm_temp | Select-Object -First 1
+          Move-Item "llvm_temp\$($extracted.Name)" C:\llvm
+        shell: powershell
+
+      - name: Verify LLVM location
+        if: runner.os == 'Windows'
+        run: dir C:\llvm\bin
+        shell: powershell
 
       - name: Build Package on Linux
         if: runner.os == 'Linux'
