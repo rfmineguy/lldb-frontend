@@ -1,4 +1,4 @@
-name: Build MacOS (ARM)
+name: Build MacOS (x86_64)
 on:
   push:
     branches:
@@ -7,8 +7,8 @@ permissions:
   contents: write
 
 jobs:
-  configure-build-and-package-macos:
-    runs-on: macos-latest
+  configure-build-and-package-macos-x64:
+    runs-on: macos-13
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
