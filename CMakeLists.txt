@@ -56,6 +56,9 @@ FetchContent_MakeAvailable(argparse)
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
 
+FetchContent_Declare(fmt GIT_REPOSITORY https://github.com/fmtlib/fmt.git GIT_TAG master GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(fmt)
+
 include(cmake/LLVM.cmake)
 
 set(SOURCES 
@@ -72,13 +75,14 @@ set(SOURCES
 
 add_executable(lldb-frontend ${SOURCES})
 target_compile_features(lldb-frontend PRIVATE cxx_std_23)
-target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
+target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse fmt)
 target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
 target_include_directories(lldb-frontend PRIVATE 
   ${LLVM_INCLUDE_DIR} 
   ${CMAKE_SOURCE_DIR}/libs/glad/include 
   ${CMAKE_SOURCE_DIR}/libs/tfd
-  ${argparse_INCLUDE_DIR})
+  ${argparse_INCLUDE_DIR}
+  ${fmt_SOURCE_DIR}/include)
 
 install(TARGETS lldb-frontend
   RUNTIME DESTINATION bin COMPONENT Runtime)
