@@ -62,6 +62,7 @@ jobs:
         run: |
           cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++
           cmake --build build --config Release
+          cpack --config build/CPackConfig.cmake
         shell: bash
 
       - name: Build Package on macOS
@@ -69,6 +70,7 @@ jobs:
         run: |
           cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=$(brew --prefix llvm)/lib/cmake/llvm"
           cmake --build build --config Release
+          cpack --config build/CPackConfig.cmake
         shell: bash
 
       - name: Build Package on Windows
@@ -76,4 +78,23 @@ jobs:
         run: |
           cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=C:/llvm/lib/cmake/llvm"
           cmake --build build --config Release
+          cpack --config build/CPackConfig.cmake
         shell: cmd
+
+      - name: Upload artifacts
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          path: lldb-frontend-darwin.tar.gz
+
+      - name: Upload artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          path: lldb-frontend-windows.tar.gz
+
+      - name: Upload artifacts
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          path: lldb-frontend-linux.tar.gz
