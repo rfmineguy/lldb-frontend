@@ -1,18 +1,3 @@
-#include "ImGuiLayer.hpp"
-#include "ImGuiCustomWidgets.hpp"
-#include "LLDBDebugger.hpp"
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include <imgui.h>
-#include <imgui_internal.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <tinyfiledialogs.h>
-#include <iostream>
-#include <fstream>
-#include "Window.hpp"
-#include "Util.hpp"
-#include "Logger.hpp"
-
 ImGuiLayer::ImGuiLayer(LLDBDebugger& debugger):
   debugger(debugger)
 {}

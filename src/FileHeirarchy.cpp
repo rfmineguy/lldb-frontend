@@ -1,8 +1,3 @@
-#include "FileHeirarchy.hpp"
-#include "Logger.hpp"
-#include <iostream>
-#include <fstream>
-
 // HeirarchyElement
 FileHeirarchy::HeirarchyElement::HeirarchyElement(
     const std::string& local_path,

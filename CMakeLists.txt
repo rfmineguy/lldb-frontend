@@ -34,17 +34,7 @@ include(cmake/fmt.cmake)
 
 include(cmake/LLVM.cmake)
 
-set(SOURCES 
-  src/main.cpp 
-  src/Window.cpp 
-  src/Init.cpp 
-  src/ImGuiLayer.cpp
-  src/ImGuiCustomWidgets.cpp
-  src/LLDBDebugger.cpp
-  src/FileHeirarchy.cpp
-  src/Util.cpp
-  src/Logger.cpp
-  src/Args.cpp)
+set(SOURCES src/lldb-frontend.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
