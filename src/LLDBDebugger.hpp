@@ -2,6 +2,7 @@
 #define LLDB_DEBUGGER_HPP
 #include <lldb/API/LLDB.h>
 #include <string>
+#include "FileHeirarchy.hpp"
 
 struct FileContext;
 
