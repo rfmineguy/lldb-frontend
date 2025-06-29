@@ -32,7 +32,7 @@ if (NOT TARGET LLDB::liblldb)
         set(LLDB_LIB_SHARED "${LLVM_LIB_DIR}/liblldb.dylib")
     elseif (UNIX)
         set(LLDB_LIB_STATIC "${LLVM_LIB_DIR}/liblldb.a")
-        set(LLDB_LIB_SHARED "${LLVM_LIB_DIR}/liblldb.so")
+        set(LLDB_LIB_SHARED "${LLVM_LIB_DIR}/liblldb.so.1")
     endif()
 
     set(LLDB_LIB_FILE "")
