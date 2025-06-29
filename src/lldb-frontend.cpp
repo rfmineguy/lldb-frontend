@@ -1,6 +1,6 @@
 #include "Includes.cpp"
-#include "Window.cpp "
-#include "Init.cpp "
+#include "Window.cpp"
+#include "Init.cpp"
 #include "ImGuiLayer.cpp"
 #include "ImGuiCustomWidgets.cpp"
 #include "LLDBDebugger.cpp"
