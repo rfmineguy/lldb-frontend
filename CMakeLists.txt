@@ -9,7 +9,7 @@ include(cmake/Version.cmake)
 project(lldb-frontend LANGUAGES C CXX VERSION ${LDBF_V_MAJ}.${LDBF_V_MIN}.${LDBF_V_PAT}.${LDBF_V_TWE})
 
 if(MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif()
 
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -83,8 +83,7 @@ if(WIN32)
     mf
     advapi32
     iphlpapi
-    legacy_stdio_definitions
-    ucrt)
+    legacy_stdio_definitions)
 endif()
 target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
 target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
