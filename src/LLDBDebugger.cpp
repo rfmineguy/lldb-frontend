@@ -34,7 +34,7 @@ void LLDBDebugger::LaunchTarget() {
   launch_info.AddDuplicateFileAction(STDIN_FILENO, STDIN_FILENO);
 
   lldb::SBError error;
-  lldb::SBProcess process = GetTarget().Launch(launch_info, error);
+  process = GetTarget().Launch(launch_info, error);
   Logger::Info("Is target valid? {}", target.IsValid() ? "Yes" : "No");
   Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
   Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
@@ -54,6 +54,10 @@ lldb::SBDebugger& LLDBDebugger::GetDebugger() {
 
 lldb::SBTarget LLDBDebugger::GetTarget() {
   return debugger.GetSelectedTarget();
+}
+
+lldb::SBProcess LLDBDebugger::GetProcess() {
+  return process;
 }
 
 void LLDBDebugger::SetTarget(lldb::SBTarget target) {
