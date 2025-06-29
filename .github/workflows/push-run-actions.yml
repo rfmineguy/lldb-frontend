@@ -26,12 +26,11 @@ jobs:
           sudo apt install llvm-dev libwayland-dev libxkbcommon-dev libx11-xcb-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev liblldb-dev libgl1-mesa-dev
         shell: bash
 
-      # - name: Install Dependencies on Windows
-      #   if: runner.os == 'Windows'
-      #   run: |
-      #     choco install dos2unix ninja nasm openssl
-      #     C:\\msys64\\msys2_shell.cmd -defterm -no-start -mingw64 -here -use-full-path -c "pacman -S --noconfirm make diffutils"
-      #   shell: bash
+      - name: Install LLVM and Clang
+        if: runner.os == 'Windows'
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "20.1.3"
 
       - name: Install Dependencies on macOS
         if: runner.os == 'macOS'
