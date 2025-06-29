@@ -31,3 +31,5 @@ target_include_directories(imgui PRIVATE
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
 )
+
+target_compile_features(imgui PRIVATE cxx_std_23)
