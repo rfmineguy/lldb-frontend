@@ -1,0 +1,51 @@
+name: Build Linux
+on:
+  push:
+    branches:
+      - run-actions
+permissions:
+  contents: write
+
+jobs:
+  configure-build-and-package-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies on Linux
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            llvm-dev libwayland-dev libxkbcommon-dev libx11-xcb-dev \
+            libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev \
+            libxi-dev liblldb-dev libgl1-mesa-dev
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug \
+                -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ \
+                -DCMAKE_VERBOSE_MAKEFILE=ON
+        shell: bash
+
+      - name: Build Target
+        run: |
+          cmake --build build --config Debug
+        shell: bash
+
+      - name: Install Build
+        run: |
+          sudo cmake --install build --config Debug
+        shell: bash
+
+      - name: Package Artifacts
+        run: |
+          sudo cpack --config build/CPackConfig.cmake
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lldb-frontend-linux
+          path: lldb-frontend-linux.tar.gz

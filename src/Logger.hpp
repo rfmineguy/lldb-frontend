@@ -3,7 +3,7 @@
 #include <string>
 #include <stack>
 #include <iostream>
-#include <format>
+#include <fmt/core.h>
 
 #define LOG_SPACING 4
 class Logger {
@@ -27,33 +27,43 @@ class Logger {
 
   public:
     template<typename... Args>
-    static void Info(const std::format_string<Args...> fmt, Args&&... args) {
-      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
-      std::cout << std::format("{}[Info] {}", std::string(log_depth * LOG_SPACING, ' '), formatted) << std::endl;
+    constexpr static void PrintlnLevel(const char* level, std::string_view fmt, Args&&... args)
+    {
+      std::string formatted = fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...));
+      fmt::print("{}[{}] {}", std::string(log_depth * LOG_SPACING, ' '), level, formatted);
+      std::cout << std::endl;
     }
 
     template<typename... Args>
-    static void Warn(const std::format_string<Args...> fmt, Args&&... args) {
-      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
-      std::cout << std::format("{}[Warn] {}", std::string(log_depth * LOG_SPACING, ' '), formatted) << std::endl;
+    static void Println(std::string_view fmt, Args&&... args)
+    {
+      std::string formatted = fmt::vformat(fmt, fmt::make_format_args(args...));
+      std::cout << formatted << std::endl;
     }
 
     template<typename... Args>
-    static void Err (const std::format_string<Args...> fmt, Args&&... args) {
-      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
-      std::cout << std::format("{}[Err] {}", std::string(log_depth * LOG_SPACING, ' '), formatted) << std::endl;
+    static void Info(std::string_view fmt, Args&&... args) {
+      PrintlnLevel("Info", fmt, args...);
     }
 
     template<typename... Args>
-    static void Crit(const std::format_string<Args...> fmt, Args&&... args) {
-      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
-      std::cout << std::format("{}[Crit] {}", std::string(log_depth * LOG_SPACING, ' '), formatted) << std::endl;
+    static void Warn(std::string_view fmt, Args&&... args) {
+      PrintlnLevel("Warn", fmt, args...);
     }
 
     template<typename... Args>
-    static void Todo(const std::format_string<Args...> fmt, Args&&... args) {
-      std::string formatted = std::format(fmt, std::forward<Args>(args)...);
-      std::cout << std::format("{}[Todo] {}", std::string(log_depth * LOG_SPACING, ' '), formatted) << std::endl;
+    static void Err (std::string_view fmt, Args&&... args) {
+      PrintlnLevel("Err", fmt, args...);
+    }
+
+    template<typename... Args>
+    static void Crit(std::string_view fmt, Args&&... args) {
+      PrintlnLevel("Crit", fmt, args...);
+    }
+
+    template<typename... Args>
+    static void Todo(std::string_view fmt, Args&&... args) {
+      PrintlnLevel("Todo", fmt, args...);
     }
 };
 

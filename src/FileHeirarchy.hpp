@@ -13,6 +13,8 @@ class FileHeirarchy {
       HeirarchyElementType type;
       std::filesystem::path local_path;
       std::filesystem::path full_path;
+      std::string full_path_string;
+      const char* c_str;
 
       std::map<std::string, HeirarchyElement*> children;
 
@@ -20,10 +22,7 @@ class FileHeirarchy {
           const std::string& local_path,
           const std::string& full_path,
           HeirarchyElementType type = HeirarchyElementType::FOLDER
-      ):
-        local_path(local_path),
-        full_path(full_path),
-        type(type) {}
+      );
     };
   public:
     FileHeirarchy();

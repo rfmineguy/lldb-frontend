@@ -1,5 +1,6 @@
 #include "Init.hpp"
 #include "Logger.hpp"
+#include "Util.hpp"
 #include <iostream>
 
 #include <glad/gl.h>
@@ -17,6 +18,7 @@ namespace lldb_frontend {
 
   bool Init::isGlfwInit = false;
   bool Init::isGladInit = false;
+  std::string Init::m_IniFilename = (Util::GetCurrentProgramDirectory() / "imgui.ini").string();
   void Init::InitGlad() {
     if (!isGlfwInit) {
       Logger::Err("Must call InitGlfw() before InitGlad()");
@@ -47,6 +49,8 @@ namespace lldb_frontend {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = m_IniFilename.c_str();;
     ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window.GetWindowHandle(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
 

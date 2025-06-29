@@ -1,0 +1,58 @@
+name: Build Windows
+on:
+  push:
+    branches:
+      - run-actions
+permissions:
+  contents: write
+
+jobs:
+  configure-build-and-package-windows:
+    runs-on: windows-2025
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download LLVM 20.1.7 archive
+        run: |
+          echo "Downloading LLVM with curl..."
+          curl -L -# -o clang_llvm.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz
+        shell: bash
+
+      - name: Extract tar.xz to temp directory
+        run: |
+          mkdir llvm_temp
+          tar -xf clang_llvm.tar.xz -C llvm_temp
+        shell: bash
+
+      - name: Move extracted LLVM to C:\llvm
+        run: |
+          $extracted = Get-ChildItem llvm_temp | Select-Object -First 1
+          Move-Item "llvm_temp\$($extracted.Name)" C:\llvm
+        shell: powershell
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=C:/llvm/lib/cmake/llvm" -DCMAKE_VERBOSE_MAKEFILE=ON
+        shell: cmd
+
+      - name: Build Target
+        run: |
+          cmake --build build --config Debug
+        shell: cmd
+
+      - name: Install Build
+        run: |
+          cmake --install build --config Debug
+        shell: cmd
+
+      - name: Package Artifacts
+        run: |
+          cpack --config build/CPackConfig.cmake
+        shell: cmd
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lldb-frontend-windows
+          path: lldb-frontend-windows.tar.gz

@@ -21,8 +21,8 @@ class Window {
 
   private:
     GLFWwindow *m_Window;
-    ImGuiLayer imguiLayer;
     LLDBDebugger debuggerCtx;
+    ImGuiLayer imguiLayer;
 };
 
 #endif

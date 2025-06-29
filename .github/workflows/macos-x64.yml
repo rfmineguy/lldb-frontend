@@ -1,0 +1,48 @@
+name: Build MacOS (x86_64)
+on:
+  push:
+    branches:
+      - run-actions
+permissions:
+  contents: write
+
+jobs:
+  configure-build-and-package-macos-x64:
+    runs-on: macos-13
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies on macOS
+        run: |
+          brew install llvm
+        shell: bash
+
+      - name: Configure CMake
+        run: |
+          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug \
+                -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ \
+                "-DLLVM_DIR=$(brew --prefix llvm)/lib/cmake/llvm" \
+                -DCMAKE_VERBOSE_MAKEFILE=ON
+        shell: bash
+
+      - name: Build Target
+        run: |
+          cmake --build build --config Debug
+        shell: bash
+
+      - name: Install Build
+        run: |
+          sudo cmake --install build --config Debug
+        shell: bash
+
+      - name: Package Artifacts
+        run: |
+          sudo cpack --config build/CPackConfig.cmake
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: lldb-frontend-darwin
+          path: lldb-frontend-darwin.tar.gz

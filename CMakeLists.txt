@@ -1,31 +1,36 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+if(WIN32)
+  message(STATUS "WIN32 Detected: Using Static CRT")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
+endif()
 
-set(CMAKE_BUILD_TYPE Debug)         # We need this so that the test executable gets build with symbols
 set(FETCHCONTENT_QUIET OFF)
-
 include(FetchContent)
 
 include(cmake/Version.cmake)
+
 project(lldb-frontend LANGUAGES C CXX VERSION ${LDBF_V_MAJ}.${LDBF_V_MIN}.${LDBF_V_PAT}.${LDBF_V_TWE})
 
+include(cmake/CompilerFlags.cmake)
+
+set(GLFW_INSTALL OFF)
+set(GLFW_BUILD_DOCS OFF)
+set(GLFW_BUILD_TESTS OFF)
+set(GLFW_BUILD_EXAMPLES OFF)
 FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(glfw)
+include_directories(${glfw_SOURCE_DIR}/include/)
 
-FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git GIT_TAG docking GIT_SHALLOW TRUE)
-FetchContent_GetProperties(imgui)
-if(NOT imgui_POPULATED)
-  FetchContent_Populate(imgui)
-  file(COPY cmake/imgui/CMakeLists.txt DESTINATION ${imgui_SOURCE_DIR})
-  include_directories(${glfw_SOURCE_DIR}/include/)
-  add_subdirectory(${imgui_SOURCE_DIR} ${imgui_BINARY_DIR})
-endif()
+include(cmake/ImGui.cmake)
 
 FetchContent_Declare(argparse GIT_REPOSITORY https://github.com/p-ranav/argparse.git GIT_TAG v3.2 GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(argparse)
 
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
+
+include(cmake/fmt.cmake)
 
 include(cmake/LLVM.cmake)
 
@@ -41,52 +46,37 @@ set(SOURCES
   src/Logger.cpp
   src/Args.cpp)
 
-add_executable(lldb-frontend ${SOURCES})
-target_compile_features(lldb-frontend PRIVATE cxx_std_23)
-target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
-target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
-target_include_directories(lldb-frontend PRIVATE 
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only)
+target_link_directories(${PROJECT_NAME} PRIVATE ${LLVM_LIB_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE 
   ${LLVM_INCLUDE_DIR} 
   ${CMAKE_SOURCE_DIR}/libs/glad/include 
   ${CMAKE_SOURCE_DIR}/libs/tfd
-  ${argparse_INCLUDE_DIR})
+  ${imgui_SOURCE_DIR}
+  ${argparse_INCLUDE_DIR}
+  ${fmt_SOURCE_DIR}/include)
 
-install(TARGETS lldb-frontend
-  RUNTIME DESTINATION bin COMPONENT Runtime)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/ DESTINATION share/lldb-frontend COMPONENT Runtime FILES_MATCHING PATTERN "*.ini")
+# Unicode
+if (NOT MSVC)
+  # Unicode is always supported on compilers other than MSVC.
+elseif (FMT_UNICODE)
+  # Unicode support requires compiling with /utf-8.
+  target_compile_options(${PROJECT_NAME} PRIVATE $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>)
+else ()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE FMT_UNICODE=0)
+endif ()
 
 set(TEST_SOURCES
   test/test.cpp
   test/test_support.cpp)
 
-add_executable(lldb-frontend-test ${TEST_SOURCES})
-target_compile_features(lldb-frontend-test PRIVATE cxx_std_23)
+add_executable(${PROJECT_NAME}-test ${TEST_SOURCES})
+target_compile_features(${PROJECT_NAME}-test PRIVATE cxx_std_23)
 
-install(TARGETS lldb-frontend-test
-  RUNTIME DESTINATION bin COMPONENT Tests)
+include(cmake/Install.cmake)
 
-# install(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION share/doc COMPONENT Runtime OPTIONAL)
+include(cmake/CPack.cmake)
 
-set(CPACK_PACKAGE_NAME "lldb-frontend")
-set(CPACK_PACKAGE_VENDOR "lldb-frontend Contributors")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LLDB Frontend UI")
-set(CPACK_PACKAGE_VERSION_MAJOR ${LDBF_V_MAJ})
-set(CPACK_PACKAGE_VERSION_MINOR ${LDBF_V_MIN})
-set(CPACK_PACKAGE_VERSION_PATCH ${LDBF_V_PAT})
-set(CPACK_PACKAGE_VERSION_TWEAK ${LDBF_V_TWE})
-# set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_SOURCE_DIR}/LICENSE)
-set(CPACK_RESOURCE_FILE_README ${CMAKE_SOURCE_DIR}/README.md)
-set(CPACK_PACKAGE_CONTACT "rfmineguy@gmail.com")
-set(CPACK_GENERATOR "TGZ")
-
-set(CPACK_COMPONENTS_ALL Runtime Tests)
-set(CPACK_COMPONENT_RUNTIME_DISPLAY_NAME "LLDB Frontend Runtime")
-set(CPACK_COMPONENT_TESTS_DISPLAY_NAME "LLDB Frontend Tests")
-set(CPACK_COMPONENT_RUNTIME_DESCRIPTION "The core executable and resources for lldb-frontend")
-set(CPACK_COMPONENT_TESTS_DESCRIPTION "Unit tests for lldb-frontend")
-string(TOLOWER "${CMAKE_SYSTEM_NAME}" SYSTEM_NAME_LOWER)
-set(CPACK_PACKAGE_FILE_NAME "lldb-frontend-${SYSTEM_NAME_LOWER}")
-
-include(CPack)
-
-file(COPY imgui.ini DESTINATION ${CMAKE_BINARY_DIR})
+include(cmake/imgui.ini.cmake)

@@ -1,5 +1,6 @@
 #include "ImGuiLayer.hpp"
 #include "ImGuiCustomWidgets.hpp"
+#include "LLDBDebugger.hpp"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -12,7 +13,9 @@
 #include "Util.hpp"
 #include "Logger.hpp"
 
-ImGuiLayer::ImGuiLayer() {}
+ImGuiLayer::ImGuiLayer(LLDBDebugger& debugger):
+  debugger(debugger)
+{}
 ImGuiLayer::~ImGuiLayer() {}
 
 void ImGuiLayer::Begin(Window* window) {
@@ -86,6 +89,11 @@ void ImGuiLayer::Draw() {
   DrawLLDBCommandWindow();
 }
 
+LLDBDebugger& ImGuiLayer::GetDebugger()
+{
+  return debugger;
+}
+
 bool ImGuiLayer::LoadFile(const std::string& fullpath) {
   Logger::ScopedGroup g("ImGuiLayer::LoadFile");
   if (!fileContentsMap.contains(fullpath)) {
@@ -105,7 +113,6 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
     }
     else {
       Logger::Err("Failed to read {}", fullpath);
-      Logger::EndGroup();
       return false;
     }
   }
@@ -124,11 +131,13 @@ void ImGuiLayer::DrawDebugWindow() {
       Logger::ScopedGroup g("OpenFileDialog");
       Logger::Info("Path: {}", fdpath);
 
-      auto target = window_ref->GetDebuggerCtx()
-        .GetDebugger()
-        .CreateTarget(fdpath);
+      auto& dctx = window_ref->GetDebuggerCtx();
 
-      window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
+      dctx.SetTarget(window_ref->GetDebuggerCtx()
+        .GetDebugger()
+        .CreateTarget(fdpath));
+
+      auto target = dctx.GetTarget();
 
       for (size_t i = 0; i < target.GetNumModules(); i++) {
         lldb::SBModule mod = target.GetModuleAtIndex(i);
@@ -157,11 +166,12 @@ void ImGuiLayer::DrawDebugWindow() {
     target_path += ".exe";
 #endif
 
-    auto target = window_ref->GetDebuggerCtx()
-      .GetDebugger()
-      .CreateTarget(target_path.c_str());
+    auto& dctx = window_ref->GetDebuggerCtx();
 
-    window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
+    dctx.SetTarget(dctx.GetDebugger().CreateTarget(target_path.c_str()));
+
+    auto target = dctx.GetTarget();
+
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       lldb::SBModule mod = target.GetModuleAtIndex(i);
       for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
@@ -185,7 +195,7 @@ void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
   for (int i = 0; i < fctx.lines.size(); i++) {
     auto& line = fctx.lines.at(i);
     ImGui::PushID(i);
-    ImGuiCustom::Breakpoint(i, line.bp); ImGui::SameLine();
+    ImGuiCustom::Breakpoint(i, line, fctx, *this); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
@@ -245,6 +255,10 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
         openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
       }
     }
+    else {
+      m_FilesNotFoundModal_open = true;
+      m_FilesNotFoundModal_files.push_back(element);
+    }
   }
   return opened;
 }
@@ -269,12 +283,14 @@ void ImGuiLayer::DrawFileBrowser() {
 
 void ImGuiLayer::DrawBreakpointsWindow() {
   ImGui::Begin("Breakpoints");
-  const auto& target = window_ref->GetDebuggerCtx().GetTarget();
+  auto& dctx = window_ref->GetDebuggerCtx();
+  auto target = dctx.GetTarget();
   int numBreakpoints = target.GetNumBreakpoints();
   for (int i = 0; i < numBreakpoints; i++) {
     auto bp = target.GetBreakpointAtIndex(i);
     auto id = bp.GetID();
-    ImGui::Text("%d", id);
+    auto& b_data = dctx.GetBreakpointData(id);
+    ImGui::Text("%d: %s:%d", id, b_data.filename.c_str(), b_data.line_number);
   }
   ImGui::End();
 }
@@ -316,4 +332,46 @@ void ImGuiLayer::DrawLLDBCommandWindow() {
 
 
   ImGui::End();
+}
+
+void ImGuiLayer::DrawFilesNotFoundModal()
+{
+  if (m_FilesNotFoundModal_open)
+  {
+    ImGui::OpenPopup("FilesNotFound");
+
+    // Always center this window when appearing
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+    if (ImGui::BeginPopupModal("FilesNotFound", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        ImGui::Text("The following files were not found:");
+        ImGui::Separator();
+
+        for (auto& element : m_FilesNotFoundModal_files)
+        {
+          static int clicked = 0;
+          if (ImGui::Button(element->c_str))
+              clicked++;
+          if (clicked & 1)
+          {
+              ImGui::SameLine();
+              ImGui::Text("Thanks for clicking me!");
+          }
+        }
+
+        if (ImGui::Button("OK", ImVec2(120, 0))) {
+          m_FilesNotFoundModal_open = false;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+          m_FilesNotFoundModal_open = false;
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+  }
 }

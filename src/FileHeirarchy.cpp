@@ -2,6 +2,18 @@
 #include "Logger.hpp"
 #include <iostream>
 
+
+FileHeirarchy::HeirarchyElement::HeirarchyElement(
+    const std::string& local_path,
+    const std::string& full_path,
+    HeirarchyElementType type
+):
+  local_path(local_path),
+  full_path(full_path),
+  full_path_string(full_path),
+  type(type),
+  c_str(full_path_string.c_str()) {}
+
 FileHeirarchy::FileHeirarchy(): mainRoot(new HeirarchyElement("/", "/")) {}
 FileHeirarchy::~FileHeirarchy() {
   Free(mainRoot);
