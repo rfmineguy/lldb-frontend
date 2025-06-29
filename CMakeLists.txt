@@ -94,8 +94,8 @@ install(TARGETS lldb-frontend-test
   RUNTIME DESTINATION bin COMPONENT Tests)
 
 if(WIN32 AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "MSVC"))
-  install(FILES "$<TARGET_PDB_FILE:lldb-frontend>" DESTINATION bin COMPONENT Runtime OPTIONAL)
-  install(FILES "$<TARGET_PDB_FILE:lldb-frontend-test>" DESTINATION bin COMPONENT Tests OPTIONAL)
+  install(FILES "$<TARGET_PDB_FILE:lldb-frontend>" DESTINATION bin COMPONENT Runtime)
+  install(FILES "$<TARGET_PDB_FILE:lldb-frontend-test>" DESTINATION bin COMPONENT Tests)
 endif()
 
 set(CPACK_PACKAGE_NAME "lldb-frontend")
