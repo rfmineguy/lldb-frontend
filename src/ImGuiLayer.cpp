@@ -256,6 +256,9 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
         openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
       }
     }
+    else {
+      opened = false;
+    }
   }
   return opened;
 }
