@@ -6,6 +6,7 @@
 #ifndef _WIN32
 #include <unistd.h>
 #else
+#include <io.h>
 #include <windows.h>
 #endif
 
@@ -33,9 +34,20 @@ void LLDBDebugger::LaunchTarget() {
 
   // Setup launch info
   lldb::SBLaunchInfo launch_info(nullptr);
-  launch_info.AddDuplicateFileAction(STDOUT_FILENO, STDOUT_FILENO);
-  launch_info.AddDuplicateFileAction(STDERR_FILENO, STDERR_FILENO);
-  launch_info.AddDuplicateFileAction(STDIN_FILENO, STDIN_FILENO);
+  int out_fn, in_fn, err_fn;
+
+#ifdef _WIN32
+  out_fn = _fileno(stdout);
+  in_fn = _fileno(stdin);
+  err_fn = _fileno(stderr);
+#else
+  out_fn = STDOUT_FILENO;
+  in_fn = STDIN_FILENO;
+  err_fn = STDERR_FILENO;
+#endif
+  launch_info.AddDuplicateFileAction(out_fn, out_fn);
+  launch_info.AddDuplicateFileAction(err_fn, err_fn);
+  launch_info.AddDuplicateFileAction(in_fn, in_fn);
 
   lldb::SBError error;
   lldb::SBProcess process = GetTarget().Launch(launch_info, error);
