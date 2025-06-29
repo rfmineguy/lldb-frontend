@@ -14,13 +14,13 @@ Logger::ScopedGroup::~ScopedGroup() {
 
 
 void Logger::BeginGroup(const std::string & tag) {
-  std::print("{}[{}]\n", std::string(log_depth * LOG_SPACING, ' '), tag);
+  std::cout << std::format("{}[{}]", std::string(log_depth * LOG_SPACING, ' '), tag) << std::endl;
   groupStack.push(tag);
   log_depth++;
 }
 void Logger::EndGroup() {
   log_depth--;
-  std::print("{}[{}]\n", std::string(log_depth * LOG_SPACING, ' '), groupStack.top());
+  std::cout << std::format("{}[{}]", std::string(log_depth * LOG_SPACING, ' '), groupStack.top()) << std::endl;
   groupStack.pop();
 }
 void Logger::BeginLine(const std::string& tag) {

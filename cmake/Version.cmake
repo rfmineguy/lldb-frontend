@@ -1,0 +1,4 @@
+set(LDBF_V_MAJ 1)
+set(LDBF_V_MIN 0)
+set(LDBF_V_PAT 0)
+set(LDBF_V_TWE 0)
