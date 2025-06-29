@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  Configure Build and Package:
     runs-on: macos-latest
     steps:
       - name: Checkout Repository
