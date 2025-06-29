@@ -39,6 +39,8 @@ void LLDBDebugger::LaunchTarget() {
   Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
   Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
 
+  // If the event thread has been run before, join it so we can spawn it again
+  if (lldbEventThread.joinable()) lldbEventThread.join();
   lldbEventThread = std::thread([&]() {
     LLDBEventThread();
   });
