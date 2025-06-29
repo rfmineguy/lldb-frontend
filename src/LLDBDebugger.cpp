@@ -2,16 +2,48 @@
 #include "FileContext.hpp"
 #include <filesystem>
 #include <stdexcept>
+#include "Logger.hpp"
+#include <unistd.h>
 
 LLDBDebugger::LLDBDebugger() {
     lldb::SBDebugger::Initialize();
     debugger = lldb::SBDebugger::Create();
-    debugger.SetAsync(false);
+    debugger.SetAsync(true);
+    listener = debugger.GetListener();
 }
 
 LLDBDebugger::~LLDBDebugger() {
+  target.GetProcess().Kill();           // TODO: We have a problem where the running thread keeps the main process from closing
   lldb::SBDebugger::Destroy(debugger);
   lldb::SBDebugger::Terminate();
+  if (lldbEventThread.joinable())
+    lldbEventThread.join();
+}
+
+void LLDBDebugger::LaunchTarget() {
+  Logger::ScopedGroup g("LaunchTarget");
+  if (!GetTarget().IsValid()) {
+    Logger::Crit("Failed to launch target. Target not valid. {}", target.GetExecutable().GetFilename());
+    return;
+  }
+
+  // Setup launch info
+  lldb::SBLaunchInfo launch_info(nullptr);
+  launch_info.AddDuplicateFileAction(STDOUT_FILENO, STDOUT_FILENO);
+  launch_info.AddDuplicateFileAction(STDERR_FILENO, STDERR_FILENO);
+  launch_info.AddDuplicateFileAction(STDIN_FILENO, STDIN_FILENO);
+
+  lldb::SBError error;
+  lldb::SBProcess process = GetTarget().Launch(launch_info, error);
+  Logger::Info("Is target valid? {}", target.IsValid() ? "Yes" : "No");
+  Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
+  Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
+
+  lldbEventThread = std::thread([&]() {
+    LLDBEventThread();
+  });
+
+  Logger::Info("Launched target");
 }
 
 lldb::SBDebugger& LLDBDebugger::GetDebugger() {
@@ -84,4 +116,58 @@ LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t i
 
 LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command) {
   return ExecResult::Ok;
+}
+
+void LLDBDebugger::LLDBEventThread() {
+  using namespace lldb;
+  SBEvent event;
+  bool running = true;
+  while (running && listener.WaitForEvent(1, event)) {
+    if (SBProcess::EventIsProcessEvent(event)) {
+      Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
+      StateType state = SBProcess::GetStateFromEvent(event);
+      switch (state) {
+        case eStateStopped:
+          Logger::Info("Target stopped");
+          break;
+        case eStateExited:
+          Logger::Info("Target exited");
+          running = false;
+          break;
+        case eStateRunning:
+          Logger::Info("Target running");
+          break;
+        case eStateCrashed:
+          Logger::Info("Target crashed");
+          break;
+        case eStateInvalid:
+          Logger::Info("Invaid State");
+          break;
+        case eStateAttaching:
+          Logger::Info("Target attaching");
+          break;
+        case eStateConnected:
+          Logger::Info("Target connected");
+          break;
+        case eStateDetached:
+          Logger::Info("Target detatched");
+          break;
+        case eStateLaunching:
+          Logger::Info("Target launching");
+          break;
+        case eStateStepping:
+          Logger::Info("Target stepping");
+          break;
+        case eStateSuspended:
+          Logger::Info("Target suspended");
+          break;
+        case eStateUnloaded:
+          Logger::Info("Target unloaded");
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  Logger::Info("LLDB Event Thread Stopping");
 }
