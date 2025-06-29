@@ -36,6 +36,7 @@ void Window::WindowLoop() {
     ImGui::ShowDemoWindow();
 
     imguiLayer.EndDockspace();
+    imguiLayer.DrawFilesNotFoundModal();
     imguiLayer.End();
     glfwPollEvents();
     glfwSwapBuffers(m_Window);

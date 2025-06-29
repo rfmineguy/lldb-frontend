@@ -18,6 +18,7 @@ class ImGuiLayer {
     void EndDockspace();
     void Draw();
     LLDBDebugger& GetDebugger();
+    void DrawFilesNotFoundModal();
 
   private:
     bool LoadFile(const std::string&);
@@ -29,7 +30,6 @@ class ImGuiLayer {
     void DrawControlsWindow();
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
-    void DrawFilesNotFoundModal();
 
     bool ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement*);
     void FileHeirarchyRecursive(const FileHeirarchy::HeirarchyElement*);
