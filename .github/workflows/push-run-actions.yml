@@ -11,8 +11,8 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - windows-2025
+          # - ubuntu-latest
+          # - windows-2025
           - macos-latest
           - macos-13
     steps:
@@ -23,7 +23,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt update
-          sudo apt install llvm-dev
+          sudo apt install llvm-dev libwayland-dev libxkbcommon-dev 
         shell: bash
 
       # - name: Install Dependencies on Windows
