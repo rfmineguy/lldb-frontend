@@ -2,6 +2,7 @@
 #define LLDB_DEBUGGER_HPP
 #include <lldb/API/LLDB.h>
 #include <string>
+#include <thread>
 
 struct FileContext;
 
@@ -19,6 +20,7 @@ class LLDBDebugger {
     LLDBDebugger();
     ~LLDBDebugger();
 
+    void LaunchTarget();
     lldb::SBDebugger& GetDebugger(); 
     lldb::SBTarget GetTarget();
     void SetTarget(lldb::SBTarget target);
@@ -31,9 +33,15 @@ class LLDBDebugger {
     ExecResult ExecCommand(const std::string&);
 
   private:
+    void LLDBEventThread();
+
+  private:
     lldb::SBDebugger debugger;
     std::unordered_map<lldb::break_id_t, BreakpointData> id_breakpoint_data;
 
+    lldb::SBTarget target;
+    lldb::SBListener listener;
+    std::thread lldbEventThread;
 };
 
 #endif
