@@ -48,7 +48,7 @@ bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id)
     if (bp.IsValid())
     {
         line.bp = true;
-        line.bp_id = bp.GetID(); // 🔥 track this
+        line.bp_id = bp.GetID();
         return true;
     }
 
