@@ -50,7 +50,7 @@ void LLDBDebugger::LaunchTarget() {
   launch_info.AddDuplicateFileAction(in_fn, in_fn);
 
   lldb::SBError error;
-  lldb::SBProcess process = GetTarget().Launch(launch_info, error);
+  process = GetTarget().Launch(launch_info, error);
   Logger::Info("Is target valid? {}", target.IsValid() ? "Yes" : "No");
   Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
   Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
@@ -70,6 +70,10 @@ lldb::SBDebugger& LLDBDebugger::GetDebugger() {
 
 lldb::SBTarget LLDBDebugger::GetTarget() {
   return debugger.GetSelectedTarget();
+}
+
+lldb::SBProcess LLDBDebugger::GetProcess() {
+  return process;
 }
 
 void LLDBDebugger::SetTarget(lldb::SBTarget target) {
@@ -143,50 +147,52 @@ void LLDBDebugger::LLDBEventThread() {
   using namespace lldb;
   SBEvent event;
   bool running = true;
-  while (running && listener.WaitForEvent(1, event)) {
-    if (SBProcess::EventIsProcessEvent(event)) {
-      Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
-      StateType state = SBProcess::GetStateFromEvent(event);
-      switch (state) {
-        case eStateStopped:
-          Logger::Info("Target stopped");
-          break;
-        case eStateExited:
-          Logger::Info("Target exited");
-          running = false;
-          break;
-        case eStateRunning:
-          Logger::Info("Target running");
-          break;
-        case eStateCrashed:
-          Logger::Info("Target crashed");
-          break;
-        case eStateInvalid:
-          Logger::Info("Invaid State");
-          break;
-        case eStateAttaching:
-          Logger::Info("Target attaching");
-          break;
-        case eStateConnected:
-          Logger::Info("Target connected");
-          break;
-        case eStateDetached:
-          Logger::Info("Target detatched");
-          break;
-        case eStateLaunching:
-          Logger::Info("Target launching");
-          break;
-        case eStateStepping:
-          Logger::Info("Target stepping");
-          break;
-        case eStateSuspended:
-          Logger::Info("Target suspended");
-          break;
-        case eStateUnloaded:
-          Logger::Info("Target unloaded");
-          break;
-        default:
-          break;
+  while (running) {
+    if (listener.WaitForEvent(1, event)) {
+      if (SBProcess::EventIsProcessEvent(event)) {
+        Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
+        StateType state = SBProcess::GetStateFromEvent(event);
+        switch (state) {
+          case eStateStopped:
+            Logger::Info("Target stopped");
+            break;
+          case eStateExited:
+            Logger::Info("Target exited");
+            running = false;
+            break;
+          case eStateRunning:
+            Logger::Info("Target running");
+            break;
+          case eStateCrashed:
+            Logger::Info("Target crashed");
+            break;
+          case eStateInvalid:
+            Logger::Info("Invaid State");
+            break;
+          case eStateAttaching:
+            Logger::Info("Target attaching");
+            break;
+          case eStateConnected:
+            Logger::Info("Target connected");
+            break;
+          case eStateDetached:
+            Logger::Info("Target detatched");
+            break;
+          case eStateLaunching:
+            Logger::Info("Target launching");
+            break;
+          case eStateStepping:
+            Logger::Info("Target stepping");
+            break;
+          case eStateSuspended:
+            Logger::Info("Target suspended");
+            break;
+          case eStateUnloaded:
+            Logger::Info("Target unloaded");
+            break;
+          default:
+            break;
+        }
       }
     }
   }

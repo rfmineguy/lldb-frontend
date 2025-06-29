@@ -189,7 +189,7 @@ void ImGuiLayer::DrawDebugWindow() {
     Util::PrintTargetModules(target);
     Util::PrintModuleCompileUnits(target, 0);
 
-    dctx.LaunchTarget();
+    // dctx.LaunchTarget();
   }
   ImGui::End();
 }
@@ -237,10 +237,21 @@ void ImGuiLayer::DrawStackTraceWindow() {
 
 void ImGuiLayer::DrawControlsWindow() {
   ImGui::Begin("Controls");
-  if (ImGui::Button("Continue")) {}
-  if (ImGui::Button("Step Into")) {}
-  if (ImGui::Button("Step Over")) {}
-  if (ImGui::Button("Next")) {}
+  if (ImGui::Button("Run")) {
+    window_ref->GetDebuggerCtx().LaunchTarget();
+  }
+  if (ImGui::Button("Continue")) {
+    window_ref->GetDebuggerCtx().GetProcess().Continue();
+  }
+  if (ImGui::Button("Step Into")) {
+    window_ref->GetDebuggerCtx().GetProcess().GetSelectedThread().StepInto();
+  }
+  if (ImGui::Button("Step Over")) {
+    window_ref->GetDebuggerCtx().GetProcess().GetSelectedThread().StepOver();
+  }
+  if (ImGui::Button("Next")) {
+    window_ref->GetDebuggerCtx().GetProcess().GetSelectedThread().StepOver(); // equivalent to next i guess
+  }
   ImGui::End();
 }
 

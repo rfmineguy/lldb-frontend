@@ -24,6 +24,7 @@ class LLDBDebugger {
     void LaunchTarget();
     lldb::SBDebugger& GetDebugger(); 
     lldb::SBTarget GetTarget();
+    lldb::SBProcess GetProcess();
     void SetTarget(lldb::SBTarget target);
 
     bool AddBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
@@ -41,6 +42,7 @@ class LLDBDebugger {
     std::unordered_map<lldb::break_id_t, BreakpointData> id_breakpoint_data;
 
     lldb::SBTarget target;
+    lldb::SBProcess process;
     lldb::SBListener listener;
     std::thread lldbEventThread;
 };
