@@ -6,6 +6,7 @@ namespace lldb_frontend {
   class Init {
     private:
       static bool isGlfwInit, isGladInit;
+      static std::string m_IniFilename;
     private:
       static void err_callback(int error, const char* description);
 
