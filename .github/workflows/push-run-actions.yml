@@ -34,10 +34,9 @@ jobs:
       - name: Download LLVM 20.1.7 archive
         if: runner.os == 'Windows'
         run: |
-          Invoke-WebRequest `
-            -Uri https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz `
-            -OutFile clang_llvm.tar.xz
-        shell: powershell
+          echo "Downloading LLVM with curl..."
+          curl -L -# -o clang_llvm.tar.xz https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.7/clang+llvm-20.1.7-x86_64-pc-windows-msvc.tar.xz
+        shell: bash
 
       - name: Extract tar.xz to temp directory
         if: runner.os == 'Windows'
