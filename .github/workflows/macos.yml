@@ -7,27 +7,16 @@ permissions:
   contents: write
 
 jobs:
-  checkout:
+  build:
     runs-on: macos-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-  dependencies:
-    runs-on: macos-latest
-    needs: checkout
-    steps:
       - name: Install Dependencies on macOS
         run: |
           brew install llvm
         shell: bash
-
-  configure:
-    runs-on: macos-latest
-    needs: dependencies
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
       - name: Configure CMake
         run: |
@@ -37,34 +26,21 @@ jobs:
                 -DCMAKE_VERBOSE_MAKEFILE=ON
         shell: bash
 
-  build:
-    runs-on: macos-latest
-    needs: configure
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Build Target
         run: |
           cmake --build build --config Debug
         shell: bash
 
-  package:
-    runs-on: macos-latest
-    needs: build
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Install Build
+        run: |
+          cmake --install build --config Debug
+        shell: bash
 
       - name: Package Artifacts
         run: |
           cpack --config build/CPackConfig.cmake
         shell: bash
 
-  upload:
-    runs-on: macos-latest
-    needs: package
-    steps:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

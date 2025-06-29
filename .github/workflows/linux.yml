@@ -7,16 +7,12 @@ permissions:
   contents: write
 
 jobs:
-  checkout:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-  dependencies:
-    runs-on: ubuntu-latest
-    needs: checkout
-    steps:
       - name: Install Dependencies on Linux
         run: |
           sudo apt update
@@ -26,13 +22,6 @@ jobs:
             libxi-dev liblldb-dev libgl1-mesa-dev
         shell: bash
 
-  configure:
-    runs-on: ubuntu-latest
-    needs: dependencies
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Configure CMake
         run: |
           cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug \
@@ -40,34 +29,21 @@ jobs:
                 -DCMAKE_VERBOSE_MAKEFILE=ON
         shell: bash
 
-  build:
-    runs-on: ubuntu-latest
-    needs: configure
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Build Target
         run: |
           cmake --build build --config Debug
         shell: bash
 
-  package:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: Install Build
+        run: |
+          cmake --install build --config Debug
+        shell: bash
 
       - name: Package Artifacts
         run: |
           cpack --config build/CPackConfig.cmake
         shell: bash
 
-  upload:
-    runs-on: ubuntu-latest
-    needs: package
-    steps:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
