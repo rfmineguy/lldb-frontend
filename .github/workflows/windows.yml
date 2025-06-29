@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  Configure Build and Package:
+  configure-build-and-package-windows:
     runs-on: windows-2025
     steps:
       - name: Checkout Repository
