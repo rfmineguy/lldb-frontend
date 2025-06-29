@@ -38,7 +38,7 @@ jobs:
 
       - name: Package Artifacts
         run: |
-          cpack --config build/CPackConfig.cmake
+          sudo cpack --config build/CPackConfig.cmake
         shell: bash
 
       - name: Upload artifacts
