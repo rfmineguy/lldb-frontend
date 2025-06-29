@@ -71,13 +71,6 @@ set(SOURCES
 add_executable(lldb-frontend ${SOURCES})
 target_compile_features(lldb-frontend PRIVATE cxx_std_23)
 target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
-if(WIN32)
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
-  target_link_libraries(
-    lldb-frontend
-    PRIVATE
-    libucrt)
-endif()
 target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
 target_include_directories(lldb-frontend PRIVATE 
   ${LLVM_INCLUDE_DIR} 
