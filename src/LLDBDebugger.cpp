@@ -90,14 +90,14 @@ bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int i
 
     auto target = GetTarget();
 
-    const char* filename = element.full_path.c_str();
+    const char* filename = element.c_str;
     int line_number = id + 1;
     lldb::SBBreakpoint bp = target.BreakpointCreateByLocation(filename, line_number);
 
     if (bp.IsValid()) {
         line.bp = true;
         line.bp_id = bp.GetID();
-        auto real_filename = std::filesystem::path(element.full_path).filename().string();
+        auto real_filename = element.full_path.string();
         id_breakpoint_data[line.bp_id] = {real_filename, line_number};
         return true;
     }
