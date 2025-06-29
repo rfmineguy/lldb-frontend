@@ -8,6 +8,6 @@ Supports MacOS (ARM), Linux and Windows
 For build instructions see [Build](BUILD.md)
 
 ## Build Status
-![MacOS Build](https://github.com/ZeunO8/lldb-frontend/actions/workflows/macos.yml/badge.svg?branch=run-actions&label=MacOS%20Build)
-![Linux Build](https://github.com/ZeunO8/lldb-frontend/actions/workflows/linux.yml/badge.svg?branch=run-actions&label=Linux%20Build)
-![Windows Build](https://github.com/ZeunO8/lldb-frontend/actions/workflows/windows.yml/badge.svg?branch=run-actions&label=Windows%20Build)
+[![MacOS Build](https://github.com/ZeunO8/lldb-frontend/actions/workflows/macos.yml/badge.svg?branch=run-actions&label=MacOS%20Build)](https://github.com/ZeunO8/lldb-frontend/actions/workflows/macos.yml)
+[![Linux Build](https://github.com/ZeunO8/lldb-frontend/actions/workflows/linux.yml/badge.svg?branch=run-actions&label=Linux%20Build)](https://github.com/ZeunO8/lldb-frontend/actions/workflows/linux.yml)
+[![Windows Build](https://github.com/ZeunO8/lldb-frontend/actions/workflows/windows.yml/badge.svg?branch=run-actions&label=Windows%20Build)](https://github.com/ZeunO8/lldb-frontend/actions/workflows/windows.yml)
