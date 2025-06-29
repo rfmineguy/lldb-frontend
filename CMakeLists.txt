@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_BUILD_TYPE Debug)         # We need this so that the test executable gets build with symbols
 include(FetchContent)
 
 # ================================================
@@ -10,10 +11,10 @@ project(lldb-frontend LANGUAGES C CXX)
 # ================================================
 #     Setup libraries with FetchContent
 # ================================================
-FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git)
+FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(glfw)
 
-FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git GIT_TAG docking)
+FetchContent_Declare(imgui GIT_REPOSITORY https://github.com/ocornut/imgui.git GIT_TAG docking GIT_SHALLOW TRUE)
 FetchContent_GetProperties(imgui)
 if(NOT imgui_POPULATED)
   FetchContent_Populate(imgui)
@@ -21,6 +22,9 @@ if(NOT imgui_POPULATED)
   include_directories(${glfw_SOURCE_DIR}/include/)
   add_subdirectory(${imgui_SOURCE_DIR} ${imgui_BINARY_DIR})
 endif()
+
+FetchContent_Declare(argparse GIT_REPOSITORY https://github.com/p-ranav/argparse.git GIT_TAG v3.2 GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(argparse)
 
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
@@ -40,14 +44,19 @@ set(SOURCES
   src/LLDBDebugger.cpp
   src/FileHeirarchy.cpp
   src/Util.cpp
-  src/Logger.cpp)
+  src/Logger.cpp
+  src/Args.cpp)
 
 add_executable(lldb-frontend ${SOURCES})
 target_compile_features(lldb-frontend PRIVATE cxx_std_23)
 
-target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb)
+target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
 target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
-target_include_directories(lldb-frontend PRIVATE ${LLVM_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/libs/glad/include ${CMAKE_SOURCE_DIR}/libs/tfd)
+target_include_directories(lldb-frontend PRIVATE 
+  ${LLVM_INCLUDE_DIR} 
+  ${CMAKE_SOURCE_DIR}/libs/glad/include 
+  ${CMAKE_SOURCE_DIR}/libs/tfd
+  ${argparse_INCLUDE_DIR})
 
 set(TEST_SOURCES
   test/test.cpp
