@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - run-actions
+      - main
 permissions:
   contents: write
 
