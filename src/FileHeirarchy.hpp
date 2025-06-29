@@ -3,6 +3,9 @@
 #include <map>
 #include <string>
 #include <filesystem>
+#include <optional>
+#include <vector>
+#include "FileContext.hpp"
 
 class FileHeirarchy {
   public:
@@ -18,11 +21,16 @@ class FileHeirarchy {
 
       std::map<std::string, HeirarchyElement*> children;
 
+      std::optional<std::vector<Line>> lines;
+
       HeirarchyElement(
           const std::string& local_path,
           const std::string& full_path,
           HeirarchyElementType type = HeirarchyElementType::FOLDER
       );
+
+      public:
+        bool LoadFromDisk();
     };
   public:
     FileHeirarchy();
