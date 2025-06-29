@@ -36,7 +36,7 @@ jobs:
 
       - name: Install Build
         run: |
-          cmake --install build --config Debug
+          sudo cmake --install build --config Debug
         shell: bash
 
       - name: Package Artifacts
