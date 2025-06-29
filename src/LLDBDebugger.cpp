@@ -26,26 +26,28 @@ void LLDBDebugger::SetTarget(lldb::SBTarget target) {
   debugger.SetSelectedTarget(target);
 }
 
-bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id) {
-    if (id < 0 || id >= static_cast<int>(fctx.lines.size())) {
+bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int id) {
+  if (element.lines->empty()) return false;
+
+    if (id < 0 || id >= static_cast<int>(element.lines->size())) {
         return false;
     }
 
-    Line& line = fctx.lines[id];
+    Line& line = element.lines->at(id);
     if (line.bp) {
         return false;
     }
 
     auto target = GetTarget();
 
-    const char* filename = fctx.filename.c_str();
+    const char* filename = element.full_path.c_str();
     int line_number = id + 1;
     lldb::SBBreakpoint bp = target.BreakpointCreateByLocation(filename, line_number);
 
     if (bp.IsValid()) {
         line.bp = true;
         line.bp_id = bp.GetID();
-        auto real_filename = std::filesystem::path(fctx.filename).filename().string();
+        auto real_filename = std::filesystem::path(element.full_path).filename().string();
         id_breakpoint_data[line.bp_id] = {real_filename, line_number};
         return true;
     }
@@ -53,12 +55,13 @@ bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id) {
     return false;
 }
 
-bool LLDBDebugger::RemoveBreakpoint(FileContext& fctx, int id) {
-    if (id < 0 || id >= static_cast<int>(fctx.lines.size())) {
+bool LLDBDebugger::RemoveBreakpoint(FileHeirarchy::HeirarchyElement& element, int id) {
+  if (element.lines->empty()) return false;
+    if (id < 0 || id >= static_cast<int>(element.lines->size())) {
         return false;
     }
 
-    Line& line = fctx.lines[id];
+    Line& line = element.lines->at(id);
     if (!line.bp || line.bp_id == LLDB_INVALID_BREAK_ID) {
         return false;
     }
