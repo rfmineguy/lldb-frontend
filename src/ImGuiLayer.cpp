@@ -168,6 +168,7 @@ void ImGuiLayer::DrawDebugWindow() {
 
     auto& dctx = window_ref->GetDebuggerCtx();
 
+    Logger::Info("TargetPath: {}", target_path);
     dctx.SetTarget(dctx.GetDebugger().CreateTarget(target_path.c_str()));
 
     auto target = dctx.GetTarget();
@@ -187,6 +188,8 @@ void ImGuiLayer::DrawDebugWindow() {
 
     Util::PrintTargetModules(target);
     Util::PrintModuleCompileUnits(target, 0);
+
+    dctx.LaunchTarget();
   }
   ImGui::End();
 }
