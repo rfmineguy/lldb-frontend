@@ -3,7 +3,11 @@
 #include <filesystem>
 #include <stdexcept>
 #include "Logger.hpp"
+#ifndef _WIN32
 #include <unistd.h>
+#else
+#include <windows.h>
+#endif
 
 LLDBDebugger::LLDBDebugger() {
     lldb::SBDebugger::Initialize();
