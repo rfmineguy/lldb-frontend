@@ -12,27 +12,34 @@ if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   message(FATAL_ERROR "Build must be set to Debug")
 else()
   message(STATUS "CMAKE_BUILD_TYPE is Debug")
+
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Compiler is Clang")
+
     if(WIN32)
-      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -gcodeview")
-      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -gcodeview")
+      # Embed debug info directly (CodeView format) — no PDBs
+      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -gcodeview -fno-limit-debug-info")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -gcodeview -fno-limit-debug-info")
+      set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Wl,/debug:none")
     else()
-      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
-      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+      # Unix-like systems, embed DWARF debug info
+      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -fno-limit-debug-info")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fno-limit-debug-info")
     endif()
+
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     message(STATUS "Compiler is GCC")
+
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
+
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    message(STATUS "Compiler is MSVC")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Zi /Od /MDd")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi /Od /MDd")
-    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /DEBUG")
+    message(WARNING "MSVC always emits .pdb files when debug info is enabled. Use Clang instead to embed symbols.")
+
   else()
     message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
   endif()
+
 endif()
 
 FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_SHALLOW TRUE)
