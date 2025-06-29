@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_BUILD_TYPE Debug)         # We need this so that the test executable gets build with symbols
 set(FETCHCONTENT_QUIET OFF)
 
 include(FetchContent)
