@@ -16,9 +16,28 @@ jobs:
           - macos-latest
           - macos-13
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Install Dependencies on Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install llvm-dev
+        shell: bash
+
+      # - name: Install Dependencies on Windows
+      #   if: runner.os == 'Windows'
+      #   run: |
+      #     choco install dos2unix ninja nasm openssl
+      #     C:\\msys64\\msys2_shell.cmd -defterm -no-start -mingw64 -here -use-full-path -c "pacman -S --noconfirm make diffutils"
+      #   shell: bash
+
+      - name: Install Dependencies on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm
+        shell: bash
 
       - name: Build Package on Linux
         if: runner.os == 'Linux'
@@ -30,7 +49,7 @@ jobs:
       - name: Build Package on macOS
         if: runner.os == 'macOS'
         run: |
-          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++
+          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=$(brew --prefix llvm)/lib/cmake/llvm"
           cmake --build build --config Release
         shell: bash
 
