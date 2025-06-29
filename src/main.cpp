@@ -1,9 +1,11 @@
 #include <lldb/API/LLDB.h>
+#include <argparse/argparse.hpp>
 #include <iostream>
 #include "Init.hpp"
 #include "Window.hpp"
+#include "Args.hpp"
 
-int main() {
+int main(int argc, char** argv) {
   //  lldb::SBDebugger::Initialize();
   //  lldb::SBDebugger debugger = lldb::SBDebugger::Create();
   //  
@@ -35,6 +37,13 @@ int main() {
   //  lldb::SBDebugger::Terminate();
 
   //  std::cout << "Hello World" << std::endl;
+
+  lldb_frontend::Args::SetupOptions();
+  lldb_frontend::Args::Parse(argc, argv);
+
+  if (lldb_frontend::Args::Get<std::string>("--executable")) {
+    std::cout << "Provided executable" << std::endl;
+  }
 
   lldb_frontend::Init::InitGlfw();
   Window w("LLDB Frontend", 600, 600);
