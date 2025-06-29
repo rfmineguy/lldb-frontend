@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(FETCHCONTENT_QUIET OFF)
-set(USE_MSVC_RUNTIME_LIBRARY_DLL OFF)
 
 include(FetchContent)
 include(cmake/Version.cmake)
