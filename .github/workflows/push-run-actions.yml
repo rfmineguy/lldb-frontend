@@ -12,7 +12,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          # - windows-2025
+          - windows-2025
           - macos-latest
           - macos-13
     steps:
