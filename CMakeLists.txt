@@ -81,12 +81,6 @@ target_include_directories(lldb-frontend PRIVATE
 install(TARGETS lldb-frontend
   RUNTIME DESTINATION bin COMPONENT Runtime)
 
-# Install .pdb if available on MSVC or Clang-cl (Windows)
-if(WIN32 AND (CMAKE_CXX_COMPILER_ID MATCHES "MSVC" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lldb-frontend.pdb"
-          DESTINATION bin COMPONENT Runtime OPTIONAL)
-endif()
-
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/ DESTINATION share/lldb-frontend COMPONENT Runtime FILES_MATCHING PATTERN "*.ini")
 install(FILES ${CMAKE_BINARY_DIR}/imgui.ini DESTINATION bin COMPONENT Runtime)
 
@@ -100,10 +94,9 @@ target_compile_features(lldb-frontend-test PRIVATE cxx_std_23)
 install(TARGETS lldb-frontend-test
   RUNTIME DESTINATION bin COMPONENT Tests)
 
-# Install .pdb for test binary if applicable
-if(WIN32 AND (CMAKE_CXX_COMPILER_ID MATCHES "MSVC" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lldb-frontend-test.pdb"
-          DESTINATION bin COMPONENT Tests OPTIONAL)
+if(WIN32 AND (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "MSVC"))
+  install(FILES "$<TARGET_PDB_FILE:lldb-frontend>" DESTINATION bin COMPONENT Runtime OPTIONAL)
+  install(FILES "$<TARGET_PDB_FILE:lldb-frontend-test>" DESTINATION bin COMPONENT Tests OPTIONAL)
 endif()
 
 set(CPACK_PACKAGE_NAME "lldb-frontend")
