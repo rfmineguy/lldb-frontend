@@ -4,8 +4,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(FETCHCONTENT_QUIET OFF)
 
 include(FetchContent)
-
 include(cmake/Version.cmake)
+
 project(lldb-frontend LANGUAGES C CXX VERSION ${LDBF_V_MAJ}.${LDBF_V_MIN}.${LDBF_V_PAT}.${LDBF_V_TWE})
 
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
@@ -15,31 +15,25 @@ else()
 
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(STATUS "Compiler is Clang")
-
     if(WIN32)
-      # Embed debug info directly (CodeView format) — no PDBs
       set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -gcodeview -fno-limit-debug-info")
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -gcodeview -fno-limit-debug-info")
       set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -Wl,/debug:none")
     else()
-      # Unix-like systems, embed DWARF debug info
       set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -fno-limit-debug-info")
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -fno-limit-debug-info")
     endif()
 
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     message(STATUS "Compiler is GCC")
-
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     message(WARNING "MSVC always emits .pdb files when debug info is enabled. Use Clang instead to embed symbols.")
-
   else()
     message(WARNING "Unknown compiler: ${CMAKE_CXX_COMPILER_ID}")
   endif()
-
 endif()
 
 FetchContent_Declare(glfw GIT_REPOSITORY https://github.com/glfw/glfw.git GIT_SHALLOW TRUE)
@@ -86,7 +80,15 @@ target_include_directories(lldb-frontend PRIVATE
 
 install(TARGETS lldb-frontend
   RUNTIME DESTINATION bin COMPONENT Runtime)
+
+# Install .pdb if available on MSVC or Clang-cl (Windows)
+if(WIN32 AND (CMAKE_CXX_COMPILER_ID MATCHES "MSVC" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lldb-frontend.pdb"
+          DESTINATION bin COMPONENT Runtime OPTIONAL)
+endif()
+
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/ DESTINATION share/lldb-frontend COMPONENT Runtime FILES_MATCHING PATTERN "*.ini")
+install(FILES ${CMAKE_BINARY_DIR}/imgui.ini DESTINATION bin COMPONENT Runtime)
 
 set(TEST_SOURCES
   test/test.cpp
@@ -98,7 +100,11 @@ target_compile_features(lldb-frontend-test PRIVATE cxx_std_23)
 install(TARGETS lldb-frontend-test
   RUNTIME DESTINATION bin COMPONENT Tests)
 
-# install(FILES ${CMAKE_SOURCE_DIR}/LICENSE DESTINATION share/doc COMPONENT Runtime OPTIONAL)
+# Install .pdb for test binary if applicable
+if(WIN32 AND (CMAKE_CXX_COMPILER_ID MATCHES "MSVC" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/lldb-frontend-test.pdb"
+          DESTINATION bin COMPONENT Tests OPTIONAL)
+endif()
 
 set(CPACK_PACKAGE_NAME "lldb-frontend")
 set(CPACK_PACKAGE_VENDOR "lldb-frontend Contributors")
