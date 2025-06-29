@@ -41,23 +41,20 @@ namespace Util {
     }
   }
 
-  std::filesystem::path GetCurrentProgramDirectory()
-  {
+  std::filesystem::path GetCurrentProgramDirectory() {
     std::filesystem::path exePath;
 
 #if defined(_WIN32)
     char path[MAX_PATH];
     DWORD length = GetModuleFileNameA(NULL, path, MAX_PATH);
-    if (length > 0 && length < MAX_PATH)
-    {
+    if (length > 0 && length < MAX_PATH) {
         exePath = std::filesystem::canonical(path);
     }
 
 #elif defined(__APPLE__)
     char path[1024];
     uint32_t size = sizeof(path);
-    if (_NSGetExecutablePath(path, &size) == 0)
-    {
+    if (_NSGetExecutablePath(path, &size) == 0) {
         exePath = std::filesystem::canonical(path);
     }
 

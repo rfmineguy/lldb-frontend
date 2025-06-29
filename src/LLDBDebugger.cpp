@@ -21,21 +21,17 @@ lldb::SBTarget LLDBDebugger::GetTarget() {
   return debugger.GetSelectedTarget();
 }
 
-void LLDBDebugger::SetTarget(lldb::SBTarget target)
-{
+void LLDBDebugger::SetTarget(lldb::SBTarget target) {
   debugger.SetSelectedTarget(target);
 }
 
-bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id)
-{
-    if (id < 0 || id >= static_cast<int>(fctx.lines.size()))
-    {
+bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id) {
+    if (id < 0 || id >= static_cast<int>(fctx.lines.size())) {
         return false;
     }
 
     Line& line = fctx.lines[id];
-    if (line.bp)
-    {
+    if (line.bp) {
         return false;
     }
 
@@ -45,8 +41,7 @@ bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id)
     int line_number = id + 1;
     lldb::SBBreakpoint bp = target.BreakpointCreateByLocation(filename, line_number);
 
-    if (bp.IsValid())
-    {
+    if (bp.IsValid()) {
         line.bp = true;
         line.bp_id = bp.GetID();
         return true;
@@ -55,22 +50,18 @@ bool LLDBDebugger::AddBreakpoint(FileContext& fctx, int id)
     return false;
 }
 
-bool LLDBDebugger::RemoveBreakpoint(FileContext& fctx, int id)
-{
-    if (id < 0 || id >= static_cast<int>(fctx.lines.size()))
-    {
+bool LLDBDebugger::RemoveBreakpoint(FileContext& fctx, int id) {
+    if (id < 0 || id >= static_cast<int>(fctx.lines.size())) {
         return false;
     }
 
     Line& line = fctx.lines[id];
-    if (!line.bp || line.bp_id == LLDB_INVALID_BREAK_ID)
-    {
+    if (!line.bp || line.bp_id == LLDB_INVALID_BREAK_ID) {
         return false;
     }
 
     auto target = GetTarget();
-    if (target.BreakpointDelete(line.bp_id))
-    {
+    if (target.BreakpointDelete(line.bp_id)) {
         line.bp = false;
         line.bp_id = LLDB_INVALID_BREAK_ID;
         return true;
