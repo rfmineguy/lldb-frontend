@@ -76,8 +76,7 @@ jobs:
       - name: Build Package on Windows
         if: runner.os == 'Windows'
         run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug -D CMAKE_C_COMPILER=cl.exe -D CMAKE_CXX_COMPILER=cl.exe "-DLLVM_DIR=C:/llvm/lib/cmake/llvm" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
+          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug -D CMAKE_C_COMPILER="C:/llvm/bin/clang.exe" -D CMAKE_CXX_COMPILER="C:/llvm/bin/clang++.exe" "-DLLVM_DIR=C:/llvm/lib/cmake/llvm" -DCMAKE_VERBOSE_MAKEFILE=ON
           cmake --build build --config Debug
           cmake --install build --config Debug
           cpack --config build/CPackConfig.cmake

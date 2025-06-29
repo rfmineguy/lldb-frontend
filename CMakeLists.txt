@@ -8,10 +8,6 @@ include(cmake/Version.cmake)
 
 project(lldb-frontend LANGUAGES C CXX VERSION ${LDBF_V_MAJ}.${LDBF_V_MIN}.${LDBF_V_PAT}.${LDBF_V_TWE})
 
-if(MSVC)
-  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-endif()
-
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   message(FATAL_ERROR "Build must be set to Debug")
 else()
@@ -73,18 +69,6 @@ set(SOURCES
 
 add_executable(lldb-frontend ${SOURCES})
 target_compile_features(lldb-frontend PRIVATE cxx_std_23)
-if(WIN32)
-  target_link_libraries(lldb-frontend
-    PRIVATE
-    ws2_32
-    secur32
-    crypt32
-    mfplat
-    mf
-    advapi32
-    iphlpapi
-    legacy_stdio_definitions)
-endif()
 target_link_libraries(lldb-frontend PRIVATE glfw glad imgui tfd LLDB::liblldb argparse)
 target_link_directories(lldb-frontend PRIVATE ${LLVM_LIB_DIR})
 target_include_directories(lldb-frontend PRIVATE 
