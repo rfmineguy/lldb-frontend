@@ -6,16 +6,18 @@
 #include <vector>
 struct Window;
 struct ImGuiInputTextCallbackData;
+class LLDBDebugger;
 
 class ImGuiLayer {
   public:
-    ImGuiLayer();
+    ImGuiLayer(LLDBDebugger& debugger);
     ~ImGuiLayer();
     void Begin(Window*);
     void End();
     void BeginDockspace();
     void EndDockspace();
     void Draw();
+    LLDBDebugger& GetDebugger();
 
   private:
     bool LoadFile(const std::string&);
@@ -39,6 +41,7 @@ class ImGuiLayer {
     static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
 
   private:
+    LLDBDebugger& debugger;
     Window* window_ref;
     FileHeirarchy fh;
     std::unordered_map<std::string, FileContext> fileContentsMap;

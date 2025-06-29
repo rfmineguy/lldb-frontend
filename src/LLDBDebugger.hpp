@@ -3,6 +3,8 @@
 #include <lldb/API/LLDB.h>
 #include <string>
 
+struct FileContext;
+
 class LLDBDebugger {
   public:
     enum class ExecResult {
@@ -13,14 +15,17 @@ class LLDBDebugger {
     ~LLDBDebugger();
 
     lldb::SBDebugger& GetDebugger(); 
-    lldb::SBTarget& GetTarget();
+    lldb::SBTarget GetTarget();
+    void SetTarget(lldb::SBTarget target);
+
+    bool AddBreakpoint(FileContext& fctx, int id);
+    bool RemoveBreakpoint(FileContext& fctx, int id);
 
   public:
     ExecResult ExecCommand(const std::string&);
 
   private:
     lldb::SBDebugger debugger;
-    lldb::SBTarget target;
 };
 
 #endif

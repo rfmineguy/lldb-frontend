@@ -3,7 +3,9 @@
 #include <imgui.h>
 #include <glad/gl.h>
 
-Window::Window(const std::string& title, int width, int height) {
+Window::Window(const std::string& title, int width, int height):
+  imguiLayer(debuggerCtx)
+{
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);

@@ -1,5 +1,6 @@
 #include "ImGuiLayer.hpp"
 #include "ImGuiCustomWidgets.hpp"
+#include "LLDBDebugger.hpp"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -12,7 +13,9 @@
 #include "Util.hpp"
 #include "Logger.hpp"
 
-ImGuiLayer::ImGuiLayer() {}
+ImGuiLayer::ImGuiLayer(LLDBDebugger& debugger):
+  debugger(debugger)
+{}
 ImGuiLayer::~ImGuiLayer() {}
 
 void ImGuiLayer::Begin(Window* window) {
@@ -86,6 +89,11 @@ void ImGuiLayer::Draw() {
   DrawLLDBCommandWindow();
 }
 
+LLDBDebugger& ImGuiLayer::GetDebugger()
+{
+  return debugger;
+}
+
 bool ImGuiLayer::LoadFile(const std::string& fullpath) {
   Logger::ScopedGroup g("ImGuiLayer::LoadFile");
   if (!fileContentsMap.contains(fullpath)) {
@@ -124,11 +132,13 @@ void ImGuiLayer::DrawDebugWindow() {
       Logger::ScopedGroup g("OpenFileDialog");
       Logger::Info("Path: {}", fdpath);
 
-      auto target = window_ref->GetDebuggerCtx()
-        .GetDebugger()
-        .CreateTarget(fdpath);
+      auto& dctx = window_ref->GetDebuggerCtx();
 
-      window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
+      dctx.SetTarget(window_ref->GetDebuggerCtx()
+        .GetDebugger()
+        .CreateTarget(fdpath));
+
+      auto target = dctx.GetTarget();
 
       for (size_t i = 0; i < target.GetNumModules(); i++) {
         lldb::SBModule mod = target.GetModuleAtIndex(i);
@@ -157,11 +167,12 @@ void ImGuiLayer::DrawDebugWindow() {
     target_path += ".exe";
 #endif
 
-    auto target = window_ref->GetDebuggerCtx()
-      .GetDebugger()
-      .CreateTarget(target_path.c_str());
+    auto& dctx = window_ref->GetDebuggerCtx();
 
-    window_ref->GetDebuggerCtx().GetDebugger().SetSelectedTarget(target);
+    dctx.SetTarget(dctx.GetDebugger().CreateTarget(target_path.c_str()));
+
+    auto target = dctx.GetTarget();
+
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       lldb::SBModule mod = target.GetModuleAtIndex(i);
       for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
@@ -185,7 +196,7 @@ void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
   for (int i = 0; i < fctx.lines.size(); i++) {
     auto& line = fctx.lines.at(i);
     ImGui::PushID(i);
-    ImGuiCustom::Breakpoint(i, line.bp); ImGui::SameLine();
+    ImGuiCustom::Breakpoint(i, line, fctx, *this); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
@@ -269,7 +280,7 @@ void ImGuiLayer::DrawFileBrowser() {
 
 void ImGuiLayer::DrawBreakpointsWindow() {
   ImGui::Begin("Breakpoints");
-  const auto& target = window_ref->GetDebuggerCtx().GetTarget();
+  auto target = window_ref->GetDebuggerCtx().GetTarget();
   int numBreakpoints = target.GetNumBreakpoints();
   for (int i = 0; i < numBreakpoints; i++) {
     auto bp = target.GetBreakpointAtIndex(i);
