@@ -13,23 +13,23 @@ FileHeirarchy::HeirarchyElement::HeirarchyElement(
   full_path(full_path),
   full_path_string(full_path),
   type(type),
-  c_str(full_path_string.c_str()) {}
+  c_str(full_path_string.c_str()),
+  lines(std::vector<Line>{0, Line{}}) {}
 
 bool FileHeirarchy::HeirarchyElement::LoadFromDisk() {
   Logger::ScopedGroup g("HeirarchyElement::LoadFromDisk");
-  if (lines->empty()) {
-    std::ifstream f(full_path);
-    if (!f.is_open()) {
-      Logger::Crit("Failed to load {} from disk", full_path.string());
-      return false;
-    }
-    std::string line;
-    while (std::getline(f, line)) {
-      lines->push_back({.line = line, .bp = false});
-    }
-    f.close();
-    Logger::Info("Loaded {} from disk", full_path.string());
+  auto& lines_ref = lines.value();
+  std::ifstream f(full_path);
+  if (!f.is_open()) {
+    Logger::Crit("Failed to load {} from disk", full_path.string());
+    return false;
   }
+  std::string line;
+  while (std::getline(f, line)) {
+    lines_ref.push_back({.line = line, .bp = false});
+  }
+  f.close();
+  Logger::Info("Loaded {} from disk", full_path.string());
   return true;
 }
 
