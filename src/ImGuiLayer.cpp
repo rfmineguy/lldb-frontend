@@ -194,11 +194,12 @@ void ImGuiLayer::DrawDebugWindow() {
   ImGui::End();
 }
 
-void ImGuiLayer::DrawCodeFile(FileContext& fctx) {
-  for (int i = 0; i < fctx.lines.size(); i++) {
-    auto& line = fctx.lines.at(i);
+void ImGuiLayer::DrawCodeFile(FileHeirarchy::HeirarchyElement& element) {
+  if (element.lines->empty()) return;
+  for (int i = 0; i < element.lines->size(); i++) {
+    auto& line = element.lines->at(i);
     ImGui::PushID(i);
-    ImGuiCustom::Breakpoint(i, line, fctx, *this); ImGui::SameLine();
+    ImGuiCustom::Breakpoint(i, element, *this); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
@@ -220,7 +221,7 @@ void ImGuiLayer::DrawCodeWindow() {
       auto local_path_string = file->local_path.string();
       auto full_path_string = file->full_path.string();
       if (ImGui::BeginTabItem(local_path_string.c_str())) {
-        DrawCodeFile(fileContentsMap.at(full_path_string));
+        DrawCodeFile(*file);
         ImGui::EndTabItem();
       }
     }
@@ -243,7 +244,7 @@ void ImGuiLayer::DrawControlsWindow() {
   ImGui::End();
 }
 
-bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* element) {
+bool ImGuiLayer::ShowHeirarchyItem(FileHeirarchy::HeirarchyElement* element) {
   bool isLeaf = element->children.empty();
 
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
@@ -253,6 +254,7 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   if (isLeaf && ImGui::IsItemClicked(0)) {
     auto element_full_path_string = element->full_path.string();
     Logger::Info("Clicked {}", element_full_path_string);
+    element->LoadFromDisk();
     if (LoadFile(element_full_path_string)) {
       if (std::find(openFiles.begin(), openFiles.end(), element) == openFiles.end()) {
         openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
@@ -266,7 +268,7 @@ bool ImGuiLayer::ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement* elemen
   return opened;
 }
 
-void ImGuiLayer::FileHeirarchyRecursive(const FileHeirarchy::HeirarchyElement* element) {
+void ImGuiLayer::FileHeirarchyRecursive(FileHeirarchy::HeirarchyElement* element) {
   if (element == nullptr) return;
   if (ShowHeirarchyItem(element)) {
     for (auto& [key, child] : element->children) {

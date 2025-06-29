@@ -2,6 +2,7 @@
 #define LLDB_DEBUGGER_HPP
 #include <lldb/API/LLDB.h>
 #include <string>
+#include "FileHeirarchy.hpp"
 #include <thread>
 
 struct FileContext;
@@ -25,8 +26,8 @@ class LLDBDebugger {
     lldb::SBTarget GetTarget();
     void SetTarget(lldb::SBTarget target);
 
-    bool AddBreakpoint(FileContext& fctx, int id);
-    bool RemoveBreakpoint(FileContext& fctx, int id);
+    bool AddBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
+    bool RemoveBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
     BreakpointData& GetBreakpointData(lldb::break_id_t id);
 
   public:

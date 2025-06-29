@@ -1,8 +1,9 @@
 #include "FileHeirarchy.hpp"
 #include "Logger.hpp"
 #include <iostream>
+#include <fstream>
 
-
+// HeirarchyElement
 FileHeirarchy::HeirarchyElement::HeirarchyElement(
     const std::string& local_path,
     const std::string& full_path,
@@ -14,6 +15,25 @@ FileHeirarchy::HeirarchyElement::HeirarchyElement(
   type(type),
   c_str(full_path_string.c_str()) {}
 
+bool FileHeirarchy::HeirarchyElement::LoadFromDisk() {
+  Logger::ScopedGroup g("HeirarchyElement::LoadFromDisk");
+  if (lines->empty()) {
+    std::ifstream f(full_path);
+    if (!f.is_open()) {
+      Logger::Crit("Failed to load {} from disk", full_path.string());
+      return false;
+    }
+    std::string line;
+    while (std::getline(f, line)) {
+      lines->push_back({.line = line, .bp = false});
+    }
+    f.close();
+    Logger::Info("Loaded {} from disk", full_path.string());
+  }
+  return true;
+}
+
+// FileHeirarchy
 FileHeirarchy::FileHeirarchy(): mainRoot(new HeirarchyElement("/", "/")) {}
 FileHeirarchy::~FileHeirarchy() {
   Free(mainRoot);

@@ -31,12 +31,12 @@ class ImGuiLayer {
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
 
-    bool ShowHeirarchyItem(const FileHeirarchy::HeirarchyElement*);
-    void FileHeirarchyRecursive(const FileHeirarchy::HeirarchyElement*);
+    bool ShowHeirarchyItem(FileHeirarchy::HeirarchyElement*);
+    void FileHeirarchyRecursive(FileHeirarchy::HeirarchyElement*);
     void DrawFileBrowser();
 
   private:
-    void DrawCodeFile(FileContext&);
+    void DrawCodeFile(FileHeirarchy::HeirarchyElement&);
 
   private:
     static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);

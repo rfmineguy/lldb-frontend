@@ -5,7 +5,8 @@
 #include <imgui.h>
 
 namespace ImGuiCustom {
-  void Breakpoint(int id, Line& line, FileContext& fctx, ImGuiLayer& imguiLayer) {
+  void Breakpoint(int id, FileHeirarchy::HeirarchyElement& element, ImGuiLayer& imguiLayer) {
+    if (element.lines->empty()) return;
     ImVec2 cursorPos = ImGui::GetCursorScreenPos();
     float radius = 6.0f;
     float diameter = radius * 2.0f;
@@ -15,9 +16,9 @@ namespace ImGuiCustom {
     if (ImGui::IsItemClicked())
     {
       auto& debugger = imguiLayer.GetDebugger();
-      auto actioned = (!line.bp) ?
-        debugger.AddBreakpoint(fctx, id) :
-        debugger.RemoveBreakpoint(fctx, id);
+      auto actioned = (!element.lines->at(id).bp) ?
+        debugger.AddBreakpoint(element, id) :
+        debugger.RemoveBreakpoint(element, id);
     }
 
     // Get draw list and draw circle
@@ -28,7 +29,7 @@ namespace ImGuiCustom {
     drawList->AddCircle(center, radius, IM_COL32(255, 255, 255, 255), 16, 1.5f);
 
     // If checked, draw filled circle
-    if (line.bp) {
+    if (element.lines->at(id).bp) {
       drawList->AddCircleFilled(center, radius - 2.0f, IM_COL32(255, 255, 255, 255), 16);
     }
   }
