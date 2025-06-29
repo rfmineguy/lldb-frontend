@@ -52,11 +52,6 @@ jobs:
           Move-Item "llvm_temp\$($extracted.Name)" C:\llvm
         shell: powershell
 
-      - name: Verify LLVM location
-        if: runner.os == 'Windows'
-        run: dir C:\llvm\bin
-        shell: powershell
-
       - name: Build Package on Linux
         if: runner.os == 'Linux'
         run: |
