@@ -127,6 +127,7 @@ void ImGuiLayer::DrawDebugWindow() {
   // Open File Dialog
   if (ImGui::Button("Open File Dialog")) {
     const char* fdpath = tinyfd_openFileDialog("Choose File", "", 0, NULL, "executables", 0);
+    std::filesystem::path path(fdpath);
     if (fdpath) {
       Logger::ScopedGroup g("OpenFileDialog");
       Logger::Info("Path: {}", fdpath);
@@ -138,6 +139,10 @@ void ImGuiLayer::DrawDebugWindow() {
         .CreateTarget(fdpath));
 
       auto target = dctx.GetTarget();
+      auto working_dir = Util::GetTargetSourceRootDirectory(path)->string();
+      Logger::Info("Working Dir: {}", working_dir);
+
+      fh.SetWorkingDir(working_dir);
 
       for (size_t i = 0; i < target.GetNumModules(); i++) {
         lldb::SBModule mod = target.GetModuleAtIndex(i);
@@ -172,6 +177,10 @@ void ImGuiLayer::DrawDebugWindow() {
     dctx.SetTarget(dctx.GetDebugger().CreateTarget(target_path.c_str()));
 
     auto target = dctx.GetTarget();
+    auto working_dir = Util::GetTargetSourceRootDirectory(target_path)->string();
+    Logger::Info("Working Dir: {}", working_dir);
+
+    fh.SetWorkingDir(working_dir);
 
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       lldb::SBModule mod = target.GetModuleAtIndex(i);
