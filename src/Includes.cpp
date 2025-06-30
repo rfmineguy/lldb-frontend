@@ -44,4 +44,5 @@
 #include "LLDBDebugger.hpp"
 #include "Logger.hpp"
 #include "Util.hpp"
+#include "LLDBCommandParser.hpp"
 #include "Window.hpp"
