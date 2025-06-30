@@ -21,7 +21,7 @@ LLDB_CommandParser::ParsedCommand LLDB_CommandParser::Parse(const std::string& c
       std::string line = where.substr(colon + 1);
       try {
         int line_int = std::stoi(std::string(line));
-        return ParsedCommand{.type = ParsedCommandType::BREAKPOINT_FILE_LINE, .command = BPFileLine(file, line_int)};
+        return ParsedCommand{.type = ParsedCommandType::BREAKPOINT_FILE_LINE, .command = BPFileLine{file, line_int}};
       } catch (std::invalid_argument e) {
         return LLDB_CommandParser::Invalid("Breakpoint line '{}' not an integer", line);
       } catch (std::out_of_range e) {
@@ -29,7 +29,7 @@ LLDB_CommandParser::ParsedCommand LLDB_CommandParser::Parse(const std::string& c
       }
     }
     else { // b <symbol>
-      return ParsedCommand{.type = ParsedCommandType::BREAKPOINT_SYMBOL, .command = BPSymbol(where)};
+      return ParsedCommand{.type = ParsedCommandType::BREAKPOINT_SYMBOL, .command = BPSymbol{where}};
     }
   }
   if (split.size() == 1 && split.at(0) == "n") {
