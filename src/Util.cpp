@@ -65,4 +65,58 @@ namespace Util {
 
     return exePath.parent_path();
   }
+  
+  std::string StringEscapeBackslash(const std::string& string)
+  {
+    std::string result;
+
+    // Reserve enough space: worst case all backslashes need escaping
+    result.reserve(string.size() * 2);
+
+    std::size_t i = 0;
+    const std::size_t length = string.size();
+
+    while (i < length)
+    {
+        if (string[i] == '\\')
+        {
+            // Count consecutive backslashes starting at i
+            std::size_t backslash_count = 0;
+
+            while (i + backslash_count < length && string[i + backslash_count] == '\\')
+            {
+                ++backslash_count;
+            }
+
+            // Number of full pairs
+            std::size_t pairs = backslash_count / 2;
+
+            // Copy all full pairs as-is (each pair is two backslashes)
+            for (std::size_t p = 0; p < pairs; ++p)
+            {
+                result.push_back('\\');
+                result.push_back('\\');
+            }
+
+            // If there is an odd one left (unescaped), escape it
+            if (backslash_count % 2 != 0)
+            {
+                // One unescaped backslash, so write two backslashes
+                result.push_back('\\');
+                result.push_back('\\');
+            }
+
+            // Move i forward by backslash_count
+            i += backslash_count;
+        }
+        else
+        {
+            // Normal character, just copy
+            result.push_back(string[i]);
+            ++i;
+        }
+    }
+
+    return result;
+  }
 }

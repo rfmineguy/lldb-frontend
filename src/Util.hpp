@@ -7,6 +7,7 @@ namespace Util {
   void PrintTargetModules(lldb::SBTarget& target);
   void PrintModuleCompileUnits(lldb::SBTarget& target, int moduleIdx);
   std::filesystem::path GetCurrentProgramDirectory();
+  std::string StringEscapeBackslash(const std::string& string);
 }
 
 #endif
