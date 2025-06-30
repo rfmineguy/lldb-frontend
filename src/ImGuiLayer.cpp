@@ -335,13 +335,13 @@ void ImGuiLayer::DrawLLDBCommandWindow() {
   if (ImGui::InputText("Input", inputBuf, IM_ARRAYSIZE(inputBuf), input_text_flags, &TextEditCallbackStub, (void*)this))
   {
       items.push_back(std::string(inputBuf));
-      auto result = window_ref->GetDebuggerCtx().ExecCommand(inputBuf);
-      switch (result) {
-        case LLDBDebugger::ExecResult::Ok:
-          Logger::Todo("ExecResult::Ok unimplemented");
+      auto result = window_ref->GetDebuggerCtx().ExecCommand(inputBuf, fh);
+      switch (result.status) {
+        case LLDBDebugger::ExecResultStatus::Ok:
+          Logger::Todo("ExecResult::Ok");
           break;
         default:
-          Logger::Crit("ExecCommand failed {}", (int)result);
+          Logger::Crit("ExecResult::Fail => {}", result.message);
       }
       reclaim_focus = true;
   }
