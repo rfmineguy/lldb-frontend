@@ -98,3 +98,17 @@ void FileHeirarchy::Print() const {
 FileHeirarchy::HeirarchyElement* FileHeirarchy::GetRoot() const {
   return mainRoot;
 }
+
+FileHeirarchy::HeirarchyElement* FileHeirarchy::GetElementByLocalPath(const std::string& localpath) {
+  return GetElementByLocalPathRec(mainRoot, localpath);
+}
+
+FileHeirarchy::HeirarchyElement* FileHeirarchy::GetElementByLocalPathRec(FileHeirarchy::HeirarchyElement* root, const std::string& localpath) const {
+  if (!root) return nullptr;
+  if (root->local_path == localpath) return root;
+  for (auto& [key, child] : root->children) {
+    auto elem = GetElementByLocalPathRec(child, localpath);
+    if (elem) return elem;
+  }
+  return nullptr;
+}
