@@ -40,7 +40,7 @@ protected:
   template <typename ...Args>
   static ParsedCommand Invalid(std::string_view fmt, Args&&... args) {
     return ParsedCommand{.type = ParsedCommandType::INVALID,
-      .command = InvalidCmd(fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...)))
+      .command = InvalidCmd{.message=fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...))}
     };
   }
 
