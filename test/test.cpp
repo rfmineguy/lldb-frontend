@@ -1,5 +1,9 @@
 #include <iostream>
 
+void testFunction() {
+  std::cout << "testFunction()" << std::endl;
+}
+
 int main() {
   std::cout << "Hello world from test" << std::endl;
   std::cout << "Hello world from test" << std::endl;
