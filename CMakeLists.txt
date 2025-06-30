@@ -60,7 +60,8 @@ endif ()
 
 set(TEST_SOURCES
   test/test.cpp
-  test/test_support.cpp)
+  test/test_support.cpp
+  test/nested/nested.cpp)
 
 add_executable(${PROJECT_NAME}-test ${TEST_SOURCES})
 target_compile_features(${PROJECT_NAME}-test PRIVATE cxx_std_23)
