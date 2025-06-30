@@ -16,6 +16,7 @@ class FileHeirarchy {
       HeirarchyElementType type;
       std::filesystem::path local_path;
       std::filesystem::path full_path;
+      std::filesystem::path relative_path;
       std::string full_path_string;
       const char* c_str;
 
@@ -35,12 +36,15 @@ class FileHeirarchy {
   public:
     FileHeirarchy();
     ~FileHeirarchy();
+    void SetWorkingDir(const std::string& workingdir);
     void AddFile(const std::string& dir, const std::string& filename);
     void Print() const;
     HeirarchyElement* GetRoot() const;
+    HeirarchyElement* GetElementByLocalPath(const std::string& localpath);
 
   private:
     void Free(HeirarchyElement* root);
+    HeirarchyElement* GetElementByLocalPathRec(HeirarchyElement* root, const std::string& localpath) const;
     void PrintRec(const HeirarchyElement* root, int depth = 0) const;
 
   private:

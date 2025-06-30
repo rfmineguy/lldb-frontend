@@ -1,4 +1,9 @@
 #include <iostream>
+#include "nested/nested.hpp"
+
+void testFunction() {
+  std::cout << "testFunction()" << std::endl;
+}
 
 int main() {
   std::cout << "Hello world from test" << std::endl;
@@ -10,4 +15,6 @@ int main() {
     std::cout << "x: " << x << std::endl;
     x--;
   }
+
+  Nested n;
 }

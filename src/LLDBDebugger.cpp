@@ -81,7 +81,12 @@ void LLDBDebugger::SetTarget(lldb::SBTarget target) {
 }
 
 bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int id) {
-  if (element.lines->empty()) return false;
+  if (element.lines->empty()) {
+    // If we try to add a breakpoint and the file hasnt been loaded yet, we have to load it
+    //   so that we have access to its lines
+    // There might be a better way to do this, but for now this works fine.
+    element.LoadFromDisk();
+  }
 
     if (id < 0 || id >= static_cast<int>(element.lines->size())) {
         return false;
@@ -103,6 +108,7 @@ bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int i
         line.bp_id = bp.GetID();
         auto real_filename = element.full_path.string();
         id_breakpoint_data[line.bp_id] = {real_filename, line_number};
+        Logger::Info("Set breakpoint at {} on line {}", filename, line_number);
         return true;
     }
 
@@ -139,8 +145,101 @@ LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t i
   return it->second;
 }
 
-LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command) {
-  return ExecResult::Ok;
+LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, FileHeirarchy& fh) {
+  auto parsed_command = commandParser.Parse(command);
+  switch (parsed_command.type) {
+    case LLDB_CommandParser::ParsedCommandType::EMPTY:
+      Logger::Info("Empty command");
+      break;
+    case LLDB_CommandParser::ParsedCommandType::BREAKPOINT_FILE_LINE:
+      {
+        auto bpfileline = std::get<LLDB_CommandParser::BPFileLine>(parsed_command.command);
+        auto element = fh.GetElementByLocalPath(bpfileline.file);
+        if (!element) {
+          Logger::Err("File '{}' does not exist in target", bpfileline.file);
+        }
+        else {
+          if (AddBreakpoint(*element, bpfileline.line)) {
+            Logger::Info("Breakpoint in file '{}' line {}", bpfileline.file, bpfileline.line);
+          }
+          else {
+            Logger::Err("Failed to set breakpoint in file '{}' line {}", bpfileline.file, bpfileline.line);
+          }
+        }
+        break;
+      }
+    case LLDB_CommandParser::ParsedCommandType::BREAKPOINT_SYMBOL:
+      {
+        Logger::ScopedGroup g("Breakpoint Symbol");
+        auto bpsymbol = std::get<LLDB_CommandParser::BPSymbol>(parsed_command.command);
+        auto functions = GetTarget().FindFunctions(bpsymbol.symbol.c_str());
+        for (size_t i = 0; i < functions.GetSize(); i++) {
+          // Check if the symbol context is ok
+          lldb::SBSymbolContext symbolCtx = functions.GetContextAtIndex(i);
+          if (!symbolCtx.IsValid()) { 
+            Logger::Info("Symbol context not valid");
+            continue;
+          }
+          Logger::Info("Symbol name: {}", symbolCtx.GetSymbol().GetName());
+
+          // Check if the function is ok
+          lldb::SBFunction func = symbolCtx.GetFunction();
+          if (!func.IsValid()) {
+            Logger::Err("Function not valid");
+            continue;
+          }
+          Logger::Info("Function {}", func.GetName());
+
+          lldb::SBAddress addr = func.GetStartAddress();
+          lldb::SBLineEntry line = addr.GetLineEntry();
+          GetTarget().ResolveSymbolContextForAddress(func.GetStartAddress(), lldb::eSymbolContextLineEntry);
+
+          if (!line.IsValid()) {
+            Logger::Err("Line entry not valid");
+            continue;
+          }
+
+          auto fs = line.GetFileSpec();
+          int lineno = line.GetLine();
+          Logger::Info("Name: {}, Lineno: {}", fs.GetFilename(), lineno);
+
+          auto element = fh.GetElementByLocalPath(fs.GetFilename());
+
+          if (AddBreakpoint(*element, lineno)) {
+            Logger::Info("Break on symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
+          }
+          else {
+            Logger::Crit("Failed to set breakpoint at symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
+          }
+        }
+        break;
+      }
+    case LLDB_CommandParser::ParsedCommandType::STEP:
+      {
+        GetProcess().GetSelectedThread().StepInto();
+        Logger::Info("Step");
+        break;
+      }
+    case LLDB_CommandParser::ParsedCommandType::NEXT:
+      {
+        GetProcess().GetSelectedThread().StepOver();
+        Logger::Info("Next");
+        break;
+      }
+    case LLDB_CommandParser::ParsedCommandType::CONTINUE:
+      {
+        GetProcess().Continue();
+        Logger::Info("Continue");
+        break;
+      }
+    case LLDB_CommandParser::ParsedCommandType::INVALID:
+      Logger::Crit("Command {} is invalid", command);
+      break;
+    default:
+      Logger::Warn("Command type: {} not implemented", (int)parsed_command.type);
+  }
+
+  return ExecResult::Ok();
 }
 
 void LLDBDebugger::LLDBEventThread() {

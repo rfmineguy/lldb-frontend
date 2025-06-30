@@ -6,11 +6,29 @@
 #include <thread>
 
 struct FileContext;
+#include <thread>
+#include <fmt/core.h>
+#include "LLDBCommandParser.hpp"
 
 class LLDBDebugger {
   public:
-    enum class ExecResult {
+    enum class ExecResultStatus {
       Ok,
+      CommandDoesNotExist,
+      HandleResolveFail,
+    };
+    struct ExecResult {
+      ExecResultStatus status;
+      std::string message;
+
+      template <typename ...Args>
+      static ExecResult Err(ExecResultStatus status, std::string_view fmt, Args&&... args) { 
+        return ExecResult{
+          .status = status,
+          .message = fmt::vformat(fmt, fmt::make_format_args(args...))
+        };
+      }
+      static ExecResult Ok() { return ExecResult{.status =  ExecResultStatus::Ok}; }
     };
     struct BreakpointData
     {
@@ -32,7 +50,7 @@ class LLDBDebugger {
     BreakpointData& GetBreakpointData(lldb::break_id_t id);
 
   public:
-    ExecResult ExecCommand(const std::string&);
+    ExecResult ExecCommand(const std::string&, FileHeirarchy&);
 
   private:
     void LLDBEventThread();
@@ -45,6 +63,9 @@ class LLDBDebugger {
     lldb::SBProcess process;
     lldb::SBListener listener;
     std::thread lldbEventThread;
+
+  private:
+    LLDB_CommandParser commandParser;
 };
 
 #endif
