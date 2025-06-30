@@ -81,7 +81,12 @@ void LLDBDebugger::SetTarget(lldb::SBTarget target) {
 }
 
 bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int id) {
-  if (element.lines->empty()) return false;
+  if (element.lines->empty()) {
+    // If we try to add a breakpoint and the file hasnt been loaded yet, we have to load it
+    //   so that we have access to its lines
+    // There might be a better way to do this, but for now this works fine.
+    element.LoadFromDisk();
+  }
 
     if (id < 0 || id >= static_cast<int>(element.lines->size())) {
         return false;
@@ -103,6 +108,7 @@ bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int i
         line.bp_id = bp.GetID();
         auto real_filename = element.full_path.string();
         id_breakpoint_data[line.bp_id] = {real_filename, line_number};
+        Logger::Info("Set breakpoint at {} on line {}", filename, line_number);
         return true;
     }
 
