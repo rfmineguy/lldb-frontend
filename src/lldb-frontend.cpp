@@ -8,6 +8,7 @@
 #include "Util.cpp"
 #include "Logger.cpp"
 #include "Args.cpp"
+#include "LLDBCommandParser.cpp"
 #include "main.cpp"
 #include "ImGuiCustomWidgets.hpp"
 #include "ImGuiLayer.hpp"

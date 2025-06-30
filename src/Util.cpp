@@ -119,4 +119,31 @@ namespace Util {
 
     return result;
   }
+
+  static std::vector<std::string> projectRootMarkers = {
+    "CMakeLists.txt",
+    "Makefile",
+    "build.zig",
+    "meson.build",
+    "Cargo.toml",
+    "package.json",
+    "pyproject.toml",
+    ".git"
+  };
+
+  std::optional<std::filesystem::path> GetTargetSourceRootDirectory(std::filesystem::path start_dir) {
+    using namespace std::filesystem;
+    path current = start_dir;
+    while (!current.empty()) {
+      Logger::Info("Current: {}", current.string());
+      for (const auto& marker : projectRootMarkers) {
+        if (std::filesystem::exists(current / marker)) {
+          Logger::Info("Has marker '{}': {}", marker, current.string());
+          return current;
+        }
+      }
+      current = current.parent_path();
+    }
+    return std::nullopt;
+  }
 }

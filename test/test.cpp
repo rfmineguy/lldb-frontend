@@ -1,4 +1,9 @@
 #include <iostream>
+#include "nested/nested.hpp"
+
+void testFunction() {
+  std::cout << "testFunction()" << std::endl;
+}
 
 int main(int argc, const char **argv) {
   std::cout << "argv[0]: " << argv[0] << std::endl;
@@ -11,4 +16,6 @@ int main(int argc, const char **argv) {
     std::cout << "x: " << x << std::endl;
     x--;
   }
+
+  Nested n;
 }
