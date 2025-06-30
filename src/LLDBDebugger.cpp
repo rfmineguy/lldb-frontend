@@ -27,36 +27,65 @@ LLDBDebugger::~LLDBDebugger() {
 
 void LLDBDebugger::LaunchTarget() {
   Logger::ScopedGroup g("LaunchTarget");
-  if (!GetTarget().IsValid()) {
-    Logger::Crit("Failed to launch target. Target not valid. {}", target.GetExecutable().GetFilename());
+  auto target = GetTarget();
+  if (!target.IsValid()) {
+    Logger::Crit("Failed to launch target. Target not valid.");
     return;
   }
 
-  // Setup launch info
-  lldb::SBLaunchInfo launch_info(nullptr);
-  int out_fn, in_fn, err_fn;
+  auto exe_spec = target.GetExecutable();
+  char exe_path[1024] = {};
+  uint32_t path_len = exe_spec.GetPath(exe_path, sizeof(exe_path));
+  if (path_len == 0) {
+    Logger::Err("Failed to get executable path");
+    return;
+  }
+  auto exe_path_string = std::string(exe_path);
+  Logger::Info("Executable path: {}", exe_path_string.c_str());
 
-#ifdef _WIN32
-  out_fn = _fileno(stdout);
-  in_fn = _fileno(stdin);
-  err_fn = _fileno(stderr);
-#else
-  out_fn = STDOUT_FILENO;
-  in_fn = STDIN_FILENO;
-  err_fn = STDERR_FILENO;
-#endif
-  launch_info.AddDuplicateFileAction(out_fn, out_fn);
-  launch_info.AddDuplicateFileAction(err_fn, err_fn);
-  launch_info.AddDuplicateFileAction(in_fn, in_fn);
+  if (!std::filesystem::exists(exe_path_string.c_str())) {
+    Logger::Err("Executable path does not exist on disk");
+    return;
+  }
+
+  auto workdir = exe_spec.GetDirectory();
+  if (!workdir) {
+    Logger::Err("Failed to get executable directory");
+    return;
+  }
+  Logger::Info("Working directory: {}", workdir);
 
   lldb::SBError error;
-  process = GetTarget().Launch(launch_info, error);
-  Logger::Info("Is target valid? {}", target.IsValid() ? "Yes" : "No");
+  auto exe_path_string_esc = Util::StringEscapeBackslash(exe_path_string);
+  process = target.Launch(
+    listener,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    workdir,
+    0,
+    true,
+    error
+  );
+
+  if (!target.IsValid()) {
+    Logger::Crit("Target not valid.");
+    return;
+  }
   Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
+  Logger::Info("Launch Error Message: {}", error.GetCString());
+  Logger::Info("Launch error code: 0x{:X}", error.GetError());
   Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
 
-  // If the event thread has been run before, join it so we can spawn it again
-  if (lldbEventThread.joinable()) lldbEventThread.join();
+  if (error.Fail()) {
+    Logger::Err("Aborting event thread: launch failed");
+    return;
+  }
+
+  if (lldbEventThread.joinable())
+    lldbEventThread.join();
   lldbEventThread = std::thread([&]() {
     LLDBEventThread();
   });
