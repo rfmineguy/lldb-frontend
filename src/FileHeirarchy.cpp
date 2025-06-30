@@ -17,7 +17,9 @@ FileHeirarchy::HeirarchyElement::HeirarchyElement(
 
 bool FileHeirarchy::HeirarchyElement::LoadFromDisk() {
   Logger::ScopedGroup g("HeirarchyElement::LoadFromDisk");
-  if (lines->empty()) {
+  if (!lines.has_value()) {
+    lines = std::vector<Line>{0, Line{}};
+    auto& lines_ref = lines.value();
     std::ifstream f(full_path);
     if (!f.is_open()) {
       Logger::Crit("Failed to load {} from disk", full_path.string());
@@ -25,7 +27,7 @@ bool FileHeirarchy::HeirarchyElement::LoadFromDisk() {
     }
     std::string line;
     while (std::getline(f, line)) {
-      lines->push_back({.line = line, .bp = false});
+      lines_ref.push_back({.line = line, .bp = false});
     }
     f.close();
     Logger::Info("Loaded {} from disk", full_path.string());
