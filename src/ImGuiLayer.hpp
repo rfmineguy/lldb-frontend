@@ -18,6 +18,7 @@ class ImGuiLayer {
     void EndDockspace();
     void Draw();
     LLDBDebugger& GetDebugger();
+    FileHeirarchy& GetFileHeirarchy();
     void DrawFilesNotFoundModal();
 
   private:
