@@ -14,3 +14,4 @@
 #include "ImGuiLayer.hpp"
 #include "FileHeirarchy.hpp"
 #include "LLDBDebugger.hpp"
+#include "TempRedirect.cpp"

@@ -9,6 +9,10 @@
 #include <io.h>
 #include <windows.h>
 #endif
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <cstring>
 
 LLDBDebugger::LLDBDebugger() {
     lldb::SBDebugger::Initialize();
@@ -56,17 +60,27 @@ void LLDBDebugger::LaunchTarget() {
   Logger::Info("Working directory: {}", workdir);
 
   lldb::SBError error;
+  if (!in_redirect.Create("in") || !out_redirect.Create("out") || !err_redirect.Create("err"))
+  {
+      error.SetErrorString("Failed to create temporary files for I/O redirection");
+      Logger::Info("Launch Error Message: {}", error.GetCString());
+      return;
+  }
+
+  const char **argv = nullptr; // or fill if you need
+  const char **envp = nullptr;
+
   auto exe_path_string_esc = Util::StringEscapeBackslash(exe_path_string);
   process = target.Launch(
     listener,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
-    nullptr,
+    argv,
+    envp,
+    in_redirect.path.c_str(),
+    out_redirect.path.c_str(),
+    err_redirect.path.c_str(),
     workdir,
     0,
-    true,
+    false,
     error
   );
 
@@ -74,9 +88,13 @@ void LLDBDebugger::LaunchTarget() {
     Logger::Crit("Target not valid.");
     return;
   }
-  Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
-  Logger::Info("Launch Error Message: {}", error.GetCString());
-  Logger::Info("Launch error code: 0x{:X}", error.GetError());
+  auto error_success = error.Success();
+  Logger::Info("Launch Status: {}", error_success ? "Success" : "Fail");
+  if (!error_success)
+  {
+    Logger::Info("Launch Error Message: {}", error.GetCString());
+    Logger::Info("Launch error code: 0x{:X}", error.GetError());
+  }
   Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
 
   if (error.Fail()) {
@@ -271,11 +289,37 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
   return ExecResult::Ok();
 }
 
+void LLDBDebugger::DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& offset)
+{
+    if (!redirect.file)
+    {
+        out << "[redirect file is null]" << std::endl;
+        return;
+    }
+
+    fflush(redirect.file);
+    fseek(redirect.file, offset, SEEK_SET);
+
+    constexpr size_t buffer_size = 4096;
+    char buffer[buffer_size];
+
+    while (fgets(buffer, buffer_size, redirect.file) != nullptr)
+    {
+        out << buffer;
+    }
+
+    offset = ftell(redirect.file);
+
+    out.flush();
+}
+
 void LLDBDebugger::LLDBEventThread() {
   using namespace lldb;
   SBEvent event;
   bool running = true;
   while (running) {
+    DumpToStd(out_redirect, std::cout, out_offset);
+    DumpToStd(err_redirect, std::cerr, err_offset);
     if (listener.WaitForEvent(1, event)) {
       if (SBProcess::EventIsProcessEvent(event)) {
         Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
@@ -324,5 +368,7 @@ void LLDBDebugger::LLDBEventThread() {
       }
     }
   }
+  DumpToStd(out_redirect, std::cout, out_offset);
+  DumpToStd(err_redirect, std::cerr, err_offset);
   Logger::Info("LLDB Event Thread Stopping");
 }
