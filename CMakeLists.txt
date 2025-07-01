@@ -66,6 +66,13 @@ set(TEST_SOURCES
 add_executable(${PROJECT_NAME}-test ${TEST_SOURCES})
 target_compile_features(${PROJECT_NAME}-test PRIVATE cxx_std_23)
 
+if(WIN32)
+  set(WIN32_TEST_SOURCES
+    test/launch_test_windows.cpp)
+  add_executable(launch-test-windows-test ${WIN32_TEST_SOURCES})
+  target_compile_features(launch-test-windows-test PRIVATE cxx_std_23)
+endif()
+
 include(cmake/Install.cmake)
 
 include(cmake/CPack.cmake)
