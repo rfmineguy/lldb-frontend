@@ -326,8 +326,73 @@ void LLDBDebugger::LLDBEventThread() {
         StateType state = SBProcess::GetStateFromEvent(event);
         switch (state) {
           case eStateStopped:
-            Logger::Info("Target stopped");
-            break;
+          {
+              Logger::Info("Target stopped");
+              SBProcess process = SBProcess::GetProcessFromEvent(event);
+              const uint32_t thread_count = process.GetNumThreads();
+
+              for (uint32_t i = 0; i < thread_count; ++i)
+              {
+                  SBThread thread = process.GetThreadAtIndex(i);
+                  if (!thread.IsValid())
+                  {
+                      continue;
+                  }
+
+                  Logger::Info("Thread ID: {} | Stop Reason: {}", thread.GetThreadID(), (uint64_t)thread.GetStopReason());
+
+                  StopReason reason = thread.GetStopReason();
+                  const size_t desc_count = thread.GetStopReasonDataCount();
+                  std::string reason_str;
+
+                  switch (reason)
+                  {
+                      case eStopReasonBreakpoint:
+                          reason_str = "Breakpoint";
+                          break;
+                      case eStopReasonWatchpoint:
+                          reason_str = "Watchpoint";
+                          break;
+                      case eStopReasonSignal:
+                          reason_str = "Signal";
+                          break;
+                      case eStopReasonException:
+                          reason_str = "Exception";
+                          break;
+                      case eStopReasonExec:
+                          reason_str = "Exec";
+                          break;
+                      case eStopReasonThreadExiting:
+                          reason_str = "Thread Exiting";
+                          break;
+                      case eStopReasonInstrumentation:
+                          reason_str = "Instrumentation";
+                          break;
+                      default:
+                          reason_str = "Other";
+                          break;
+                  }
+
+                  Logger::Info("Reason: {} | Data Count: {}", reason_str, desc_count);
+
+                  for (size_t j = 0; j < desc_count; ++j)
+                  {
+                      Logger::Info("  Reason Data[{}] = {}", j, thread.GetStopReasonDataAtIndex(j));
+                  }
+
+                  const SBFrame frame = thread.GetFrameAtIndex(0);
+                  if (frame.IsValid())
+                  {
+                      SBLineEntry line_entry = frame.GetLineEntry();
+                      if (line_entry.IsValid())
+                      {
+                          const SBFileSpec file_spec = line_entry.GetFileSpec();
+                          Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
+                      }
+                  }
+              }
+              break;
+          }
           case eStateExited:
             Logger::Info("Target exited");
             running = false;
