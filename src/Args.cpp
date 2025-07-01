@@ -4,17 +4,22 @@ namespace lldb_frontend {
   argparse::ArgumentParser Args::parser = argparse::ArgumentParser();
 
   void Args::SetupOptions() {
-    parser.add_argument("-e", "--executable")
+    parser.add_argument("executable")
       .help("The program you wish to debug");
   }
 
-  void Args::Parse(int argc, char **argv) {
+  bool Args::Parse(int argc, char **argv) {
     try {
       parser.parse_args(argc, argv);
+      return true;
     } catch (const std::exception& err) {
       std::cerr << err.what() << std::endl;
       std::cerr << parser;
-      exit(1);
+      return false;
     }
+  }
+
+  void Args::ShowHelp() {
+    std::cout << parser.help().str() << std::endl;
   }
 }
