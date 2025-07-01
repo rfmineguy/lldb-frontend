@@ -8,7 +8,9 @@ namespace lldb_frontend {
       static argparse::ArgumentParser parser;
     public:
       static void SetupOptions();
-      static void Parse(int argc, char** argv);
+      static bool Parse(int argc, char** argv);
+      static void ShowHelp();
+    public:
       template<typename T>
       static std::optional<T> Get(const std::string& name) {
         return parser.present<T>(name);

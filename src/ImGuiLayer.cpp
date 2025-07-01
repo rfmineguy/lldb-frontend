@@ -94,6 +94,10 @@ LLDBDebugger& ImGuiLayer::GetDebugger()
   return debugger;
 }
 
+FileHeirarchy& ImGuiLayer::GetFileHeirarchy() {
+  return fh;
+}
+
 bool ImGuiLayer::LoadFile(const std::string& fullpath) {
   Logger::ScopedGroup g("ImGuiLayer::LoadFile");
   if (!fileContentsMap.contains(fullpath)) {

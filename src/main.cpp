@@ -39,10 +39,13 @@ int main(int argc, char** argv) {
   //  std::cout << "Hello World" << std::endl;
 
   lldb_frontend::Args::SetupOptions();
-  lldb_frontend::Args::Parse(argc, argv);
+  if (!lldb_frontend::Args::Parse(argc, argv)) {
+    std::cerr << "Failed to parse arguments" << std::endl;
+    return -1;
+  }
 
-  if (lldb_frontend::Args::Get<std::string>("--executable")) {
-    std::cout << "Provided executable" << std::endl;
+  if (auto value = lldb_frontend::Args::Get<std::string>("executable")) {
+    std::cout << "Provided executable: " << *value << std::endl;
   }
 
   lldb_frontend::Init::InitGlfw();
