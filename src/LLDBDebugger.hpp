@@ -9,6 +9,7 @@ struct FileContext;
 #include <thread>
 #include <fmt/core.h>
 #include "LLDBCommandParser.hpp"
+#include "TempRedirect.hpp"
 
 class LLDBDebugger {
   public:
@@ -63,6 +64,13 @@ class LLDBDebugger {
     lldb::SBProcess process;
     lldb::SBListener listener;
     std::thread lldbEventThread;
+    TempRedirect in_redirect;
+    size_t in_offset = 0;
+    TempRedirect out_redirect;
+    size_t out_offset = 0;
+    TempRedirect err_redirect;
+    size_t err_offset = 0;
+    void DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& offset);
 
   private:
     LLDB_CommandParser commandParser;

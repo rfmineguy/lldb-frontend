@@ -5,7 +5,8 @@ void testFunction() {
   std::cout << "testFunction()" << std::endl;
 }
 
-int main() {
+int main(int argc, const char **argv) {
+  std::cout << "argv[0]: " << argv[0] << std::endl;
   std::cout << "Hello world from test" << std::endl;
   std::cout << "Hello world from test" << std::endl;
   std::cout << "Hello world from test" << std::endl;

@@ -9,6 +9,10 @@
 #include <io.h>
 #include <windows.h>
 #endif
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <cstring>
 
 LLDBDebugger::LLDBDebugger() {
     lldb::SBDebugger::Initialize();
@@ -27,36 +31,79 @@ LLDBDebugger::~LLDBDebugger() {
 
 void LLDBDebugger::LaunchTarget() {
   Logger::ScopedGroup g("LaunchTarget");
-  if (!GetTarget().IsValid()) {
-    Logger::Crit("Failed to launch target. Target not valid. {}", target.GetExecutable().GetFilename());
+  auto target = GetTarget();
+  if (!target.IsValid()) {
+    Logger::Crit("Failed to launch target. Target not valid.");
     return;
   }
 
-  // Setup launch info
-  lldb::SBLaunchInfo launch_info(nullptr);
-  int out_fn, in_fn, err_fn;
+  auto exe_spec = target.GetExecutable();
+  char exe_path[1024] = {};
+  uint32_t path_len = exe_spec.GetPath(exe_path, sizeof(exe_path));
+  if (path_len == 0) {
+    Logger::Err("Failed to get executable path");
+    return;
+  }
+  auto exe_path_string = std::string(exe_path);
+  Logger::Info("Executable path: {}", exe_path_string.c_str());
 
-#ifdef _WIN32
-  out_fn = _fileno(stdout);
-  in_fn = _fileno(stdin);
-  err_fn = _fileno(stderr);
-#else
-  out_fn = STDOUT_FILENO;
-  in_fn = STDIN_FILENO;
-  err_fn = STDERR_FILENO;
-#endif
-  launch_info.AddDuplicateFileAction(out_fn, out_fn);
-  launch_info.AddDuplicateFileAction(err_fn, err_fn);
-  launch_info.AddDuplicateFileAction(in_fn, in_fn);
+  if (!std::filesystem::exists(exe_path_string.c_str())) {
+    Logger::Err("Executable path does not exist on disk");
+    return;
+  }
+
+  auto workdir = exe_spec.GetDirectory();
+  if (!workdir) {
+    Logger::Err("Failed to get executable directory");
+    return;
+  }
+  Logger::Info("Working directory: {}", workdir);
 
   lldb::SBError error;
-  process = GetTarget().Launch(launch_info, error);
-  Logger::Info("Is target valid? {}", target.IsValid() ? "Yes" : "No");
-  Logger::Info("Launch Status: {}", error.Success() ? "Success" : "Fail");
+  if (!in_redirect.Create("in") || !out_redirect.Create("out") || !err_redirect.Create("err"))
+  {
+      error.SetErrorString("Failed to create temporary files for I/O redirection");
+      Logger::Info("Launch Error Message: {}", error.GetCString());
+      return;
+  }
+
+  const char **argv = nullptr; // or fill if you need
+  const char **envp = nullptr;
+
+  auto exe_path_string_esc = Util::StringEscapeBackslash(exe_path_string);
+  process = target.Launch(
+    listener,
+    argv,
+    envp,
+    in_redirect.path.c_str(),
+    out_redirect.path.c_str(),
+    err_redirect.path.c_str(),
+    workdir,
+    0,
+    false,
+    error
+  );
+
+  if (!target.IsValid()) {
+    Logger::Crit("Target not valid.");
+    return;
+  }
+  auto error_success = error.Success();
+  Logger::Info("Launch Status: {}", error_success ? "Success" : "Fail");
+  if (!error_success)
+  {
+    Logger::Info("Launch Error Message: {}", error.GetCString());
+    Logger::Info("Launch error code: 0x{:X}", error.GetError());
+  }
   Logger::Info("Is process valid? {}", process.IsValid() ? "Yes" : "No");
 
-  // If the event thread has been run before, join it so we can spawn it again
-  if (lldbEventThread.joinable()) lldbEventThread.join();
+  if (error.Fail()) {
+    Logger::Err("Aborting event thread: launch failed");
+    return;
+  }
+
+  if (lldbEventThread.joinable())
+    lldbEventThread.join();
   lldbEventThread = std::thread([&]() {
     LLDBEventThread();
   });
@@ -242,11 +289,37 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
   return ExecResult::Ok();
 }
 
+void LLDBDebugger::DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& offset)
+{
+    if (!redirect.file)
+    {
+        out << "[redirect file is null]" << std::endl;
+        return;
+    }
+
+    fflush(redirect.file);
+    fseek(redirect.file, offset, SEEK_SET);
+
+    constexpr size_t buffer_size = 4096;
+    char buffer[buffer_size];
+
+    while (fgets(buffer, buffer_size, redirect.file) != nullptr)
+    {
+        out << buffer;
+    }
+
+    offset = ftell(redirect.file);
+
+    out.flush();
+}
+
 void LLDBDebugger::LLDBEventThread() {
   using namespace lldb;
   SBEvent event;
   bool running = true;
   while (running) {
+    DumpToStd(out_redirect, std::cout, out_offset);
+    DumpToStd(err_redirect, std::cerr, err_offset);
     if (listener.WaitForEvent(1, event)) {
       if (SBProcess::EventIsProcessEvent(event)) {
         Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
@@ -295,5 +368,7 @@ void LLDBDebugger::LLDBEventThread() {
       }
     }
   }
+  DumpToStd(out_redirect, std::cout, out_offset);
+  DumpToStd(err_redirect, std::cerr, err_offset);
   Logger::Info("LLDB Event Thread Stopping");
 }
