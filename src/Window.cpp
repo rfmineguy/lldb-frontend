@@ -1,11 +1,15 @@
 #include "Window.hpp"
+#include "Args.hpp"
 #include "Logger.hpp"
+#include "Util.hpp"
+#include <filesystem>
 #include <imgui.h>
 #include <glad/gl.h>
 
 Window::Window(const std::string& title, int width, int height):
   imguiLayer(debuggerCtx)
 {
+  // Initialize glfw window
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -19,6 +23,32 @@ Window::Window(const std::string& title, int width, int height):
     exit(2);
   }
   glfwMakeContextCurrent(m_Window);
+
+  // Setup debugger context
+  if (auto executable = lldb_frontend::Args::Get<std::string>("executable")) {
+    debuggerCtx.SetTarget(debuggerCtx.GetDebugger().CreateTarget(executable->c_str()));
+    auto target = debuggerCtx.GetTarget();
+    auto fullpath = std::filesystem::canonical(executable->c_str());
+
+    auto working_dir = Util::GetTargetSourceRootDirectory(fullpath)->string();
+    FileHeirarchy& fh = imguiLayer.GetFileHeirarchy();
+    fh.SetWorkingDir(working_dir);
+
+    for (size_t i = 0; i < target.GetNumModules(); i++) {
+      lldb::SBModule mod = target.GetModuleAtIndex(i);
+      for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
+        lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
+        auto directory = cu.GetFileSpec().GetDirectory();
+        auto name = cu.GetFileSpec().GetFilename();
+
+        fh.AddFile(directory, name);
+      }
+    }
+    fh.Print();
+
+    Util::PrintTargetModules(target);
+    Util::PrintModuleCompileUnits(target, 0);
+  }
   Logger::Info("Created window");
 }
 
