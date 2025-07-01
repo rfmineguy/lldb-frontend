@@ -184,6 +184,22 @@ bool LLDBDebugger::RemoveBreakpoint(FileHeirarchy::HeirarchyElement& element, in
     return false;
 }
 
+void LLDBDebugger::HitBreakpoint(lldb::break_id_t b_id) {
+  auto it = id_breakpoint_data.find(b_id);
+  if (it == id_breakpoint_data.end())
+    return;
+  auto& b_data = it->second;
+  active_line = b_data;
+}
+
+bool LLDBDebugger::IsActiveFile(const std::string& filename) {
+  return active_line.has_value() && active_line->filename == filename;
+}
+
+bool LLDBDebugger::IsActiveLine(int line_number) {
+  return active_line.has_value() && active_line->line_number == line_number;
+}
+
 LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t id)
 {
   auto it = id_breakpoint_data.find(id);
@@ -325,17 +341,14 @@ void LLDBDebugger::LLDBEventThread() {
         Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
         StateType state = SBProcess::GetStateFromEvent(event);
         switch (state) {
-          case eStateStopped:
-          {
+          case eStateStopped: {
               Logger::Info("Target stopped");
               SBProcess process = SBProcess::GetProcessFromEvent(event);
               const uint32_t thread_count = process.GetNumThreads();
 
-              for (uint32_t i = 0; i < thread_count; ++i)
-              {
+              for (uint32_t i = 0; i < thread_count; ++i) {
                   SBThread thread = process.GetThreadAtIndex(i);
-                  if (!thread.IsValid())
-                  {
+                  if (!thread.IsValid()) {
                       continue;
                   }
 
@@ -345,11 +358,13 @@ void LLDBDebugger::LLDBEventThread() {
                   const size_t desc_count = thread.GetStopReasonDataCount();
                   std::string reason_str;
 
-                  switch (reason)
-                  {
-                      case eStopReasonBreakpoint:
+                  switch (reason) {
+                      case eStopReasonBreakpoint: {
                           reason_str = "Breakpoint";
+                          auto b_id = (lldb::break_id_t)thread.GetStopReasonDataAtIndex(0);
+                          HitBreakpoint(b_id);
                           break;
+                      }
                       case eStopReasonWatchpoint:
                           reason_str = "Watchpoint";
                           break;
@@ -375,17 +390,14 @@ void LLDBDebugger::LLDBEventThread() {
 
                   Logger::Info("Reason: {} | Data Count: {}", reason_str, desc_count);
 
-                  for (size_t j = 0; j < desc_count; ++j)
-                  {
+                  for (size_t j = 0; j < desc_count; ++j) {
                       Logger::Info("  Reason Data[{}] = {}", j, thread.GetStopReasonDataAtIndex(j));
                   }
 
                   const SBFrame frame = thread.GetFrameAtIndex(0);
-                  if (frame.IsValid())
-                  {
+                  if (frame.IsValid()) {
                       SBLineEntry line_entry = frame.GetLineEntry();
-                      if (line_entry.IsValid())
-                      {
+                      if (line_entry.IsValid()) {
                           const SBFileSpec file_spec = line_entry.GetFileSpec();
                           Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
                       }
@@ -398,6 +410,7 @@ void LLDBDebugger::LLDBEventThread() {
             running = false;
             break;
           case eStateRunning:
+            active_line.reset();
             Logger::Info("Target running");
             break;
           case eStateCrashed:
