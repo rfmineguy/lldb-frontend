@@ -184,6 +184,22 @@ bool LLDBDebugger::RemoveBreakpoint(FileHeirarchy::HeirarchyElement& element, in
     return false;
 }
 
+void LLDBDebugger::HitBreakpoint(lldb::break_id_t b_id) {
+  auto it = id_breakpoint_data.find(b_id);
+  if (it == id_breakpoint_data.end())
+    return;
+  auto& b_data = it->second;
+  active_line = b_data;
+}
+
+bool LLDBDebugger::IsActiveFile(const std::string& filename) {
+  return active_line.has_value() && active_line->filename == filename;
+}
+
+bool LLDBDebugger::IsActiveLine(int line_number) {
+  return active_line.has_value() && active_line->line_number == line_number;
+}
+
 LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t id)
 {
   auto it = id_breakpoint_data.find(id);
@@ -325,14 +341,76 @@ void LLDBDebugger::LLDBEventThread() {
         Logger::Info("Event name: {}", event.GetBroadcaster().GetName());
         StateType state = SBProcess::GetStateFromEvent(event);
         switch (state) {
-          case eStateStopped:
-            Logger::Info("Target stopped");
-            break;
+          case eStateStopped: {
+              Logger::Info("Target stopped");
+              SBProcess process = SBProcess::GetProcessFromEvent(event);
+              const uint32_t thread_count = process.GetNumThreads();
+
+              for (uint32_t i = 0; i < thread_count; ++i) {
+                  SBThread thread = process.GetThreadAtIndex(i);
+                  if (!thread.IsValid()) {
+                      continue;
+                  }
+
+                  Logger::Info("Thread ID: {} | Stop Reason: {}", thread.GetThreadID(), (uint64_t)thread.GetStopReason());
+
+                  StopReason reason = thread.GetStopReason();
+                  const size_t desc_count = thread.GetStopReasonDataCount();
+                  std::string reason_str;
+
+                  switch (reason) {
+                      case eStopReasonBreakpoint: {
+                          reason_str = "Breakpoint";
+                          auto b_id = (lldb::break_id_t)thread.GetStopReasonDataAtIndex(0);
+                          HitBreakpoint(b_id);
+                          break;
+                      }
+                      case eStopReasonWatchpoint:
+                          reason_str = "Watchpoint";
+                          break;
+                      case eStopReasonSignal:
+                          reason_str = "Signal";
+                          break;
+                      case eStopReasonException:
+                          reason_str = "Exception";
+                          break;
+                      case eStopReasonExec:
+                          reason_str = "Exec";
+                          break;
+                      case eStopReasonThreadExiting:
+                          reason_str = "Thread Exiting";
+                          break;
+                      case eStopReasonInstrumentation:
+                          reason_str = "Instrumentation";
+                          break;
+                      default:
+                          reason_str = "Other";
+                          break;
+                  }
+
+                  Logger::Info("Reason: {} | Data Count: {}", reason_str, desc_count);
+
+                  for (size_t j = 0; j < desc_count; ++j) {
+                      Logger::Info("  Reason Data[{}] = {}", j, thread.GetStopReasonDataAtIndex(j));
+                  }
+
+                  const SBFrame frame = thread.GetFrameAtIndex(0);
+                  if (frame.IsValid()) {
+                      SBLineEntry line_entry = frame.GetLineEntry();
+                      if (line_entry.IsValid()) {
+                          const SBFileSpec file_spec = line_entry.GetFileSpec();
+                          Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
+                      }
+                  }
+              }
+              break;
+          }
           case eStateExited:
             Logger::Info("Target exited");
             running = false;
             break;
           case eStateRunning:
+            active_line.reset();
             Logger::Info("Target running");
             break;
           case eStateCrashed:

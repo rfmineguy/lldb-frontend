@@ -7,7 +7,7 @@ struct FileContext;
 struct ImGuiLayer;
 
 namespace ImGuiCustom {
-  void Breakpoint(int id, FileHeirarchy::HeirarchyElement& element, ImGuiLayer& imguiLayer);
+  void Breakpoint(int id, FileHeirarchy::HeirarchyElement& element, ImGuiLayer& imguiLayer, bool active);
 }
 
 #endif

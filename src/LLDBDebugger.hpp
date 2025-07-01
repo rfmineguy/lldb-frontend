@@ -48,7 +48,12 @@ class LLDBDebugger {
 
     bool AddBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
     bool RemoveBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
+  private:
+    void HitBreakpoint(lldb::break_id_t b_id);
+  public:
     BreakpointData& GetBreakpointData(lldb::break_id_t id);
+    bool IsActiveFile(const std::string& filename);
+    bool IsActiveLine(int line_number);
 
   public:
     ExecResult ExecCommand(const std::string&, FileHeirarchy&);
@@ -59,6 +64,7 @@ class LLDBDebugger {
   private:
     lldb::SBDebugger debugger;
     std::unordered_map<lldb::break_id_t, BreakpointData> id_breakpoint_data;
+    std::optional<BreakpointData> active_line;
 
     lldb::SBTarget target;
     lldb::SBProcess process;

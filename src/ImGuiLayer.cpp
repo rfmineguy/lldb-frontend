@@ -204,18 +204,24 @@ void ImGuiLayer::DrawDebugWindow() {
 }
 
 void ImGuiLayer::DrawCodeFile(FileHeirarchy::HeirarchyElement& element) {
+  bool active_file = debugger.IsActiveFile(element.full_path_string);
   if (element.lines->empty()) return;
   for (int i = 0; i < element.lines->size(); i++) {
     auto& line = element.lines->at(i);
     ImGui::PushID(i);
-    ImGuiCustom::Breakpoint(i, element, *this); ImGui::SameLine();
+    auto line_number = i + 1;
+    auto line_active = debugger.IsActiveLine(line_number);
+    ImGuiCustom::Breakpoint(i, element, *this, line_active); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
+    auto line_bg_color = i % 2 == 0 ? ImGui::GetColorU32(ImGuiCol_Button) : ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    if (active_file && line_active)
+      line_bg_color = IM_COL32(248, 42, 128, 255);
     ImGui::GetWindowDrawList()->AddRectFilled(
         cursor,
         cursor + line_size,
-        i % 2 == 0 ? ImGui::GetColorU32(ImGuiCol_Button) : ImGui::GetColorU32(ImGuiCol_ButtonHovered),
+        line_bg_color,
         0.f);
     ImGui::Text("[%d] | %s", i, line.line.c_str());
     ImGui::PopID();
