@@ -71,3 +71,4 @@ include(cmake/Install.cmake)
 include(cmake/CPack.cmake)
 
 include(cmake/imgui.ini.cmake)
+include(cmake/Resources.cmake)
