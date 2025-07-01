@@ -4,7 +4,7 @@ namespace lldb_frontend {
   argparse::ArgumentParser Args::parser = argparse::ArgumentParser();
 
   void Args::SetupOptions() {
-    parser.add_argument("executable")
+    parser.add_argument("--executable")
       .help("The program you wish to debug");
   }
 
