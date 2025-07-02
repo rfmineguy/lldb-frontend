@@ -17,7 +17,7 @@ std::filesystem::path FileHierarchy::TreeNode::GetPath() const {
   auto current_parent_node = parent_node;
   while (current_parent_node) {
 #if defined(_WIN32)
-    //if (!(current_parent_node->name.empty() || current_parent_node->name == path_sep_string)) {
+    if (!(current_parent_node->name.empty() || current_parent_node->name == path_sep_string)) {
 #else
     if (!(current_parent_node->name == path_sep_string)) {
 #endif
