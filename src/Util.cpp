@@ -138,7 +138,7 @@ namespace Util {
 
   std::optional<std::filesystem::path> GetTargetSourceRootDirectory(std::filesystem::path start_dir) {
     using namespace std::filesystem;
-    path current = start_dir;
+    path current = start_dir.parent_path();
     bool at_root = false;
     while (!current.empty()) {
       Logger::Info("Current: {}", current.string());
