@@ -144,7 +144,11 @@ void ImGuiLayer::DrawDebugWindow() {
         .CreateTarget(fdpath));
 
       auto target = dctx.GetTarget();
-      auto working_dir = Util::GetTargetSourceRootDirectory(path)->string();
+      auto source_directory = Util::GetTargetSourceRootDirectory(path);
+      if (!source_directory.has_value()) {
+        source_directory = path.root_path();
+      }
+      auto working_dir = source_directory->string();
       Logger::Info("Working Dir: {}", working_dir);
 
       fh.SetWorkingDir(working_dir);
@@ -182,7 +186,12 @@ void ImGuiLayer::DrawDebugWindow() {
     dctx.SetTarget(dctx.GetDebugger().CreateTarget(target_path.c_str()));
 
     auto target = dctx.GetTarget();
-    auto working_dir = Util::GetTargetSourceRootDirectory(target_path)->string();
+    auto t_path = std::filesystem::path(target_path);
+    auto source_directory = Util::GetTargetSourceRootDirectory(t_path);
+    if (!source_directory.has_value()) {
+      source_directory = t_path.root_path();
+    }
+    auto working_dir = source_directory->string();
     Logger::Info("Working Dir: {}", working_dir);
 
     fh.SetWorkingDir(working_dir);
