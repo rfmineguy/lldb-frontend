@@ -37,7 +37,7 @@
 //=== Project Headers ===//
 #include "Args.hpp"
 #include "FileContext.hpp"
-#include "FileHeirarchy.hpp"
+#include "FileHierarchy.hpp"
 #include "ImGuiCustomWidgets.hpp"
 #include "ImGuiLayer.hpp"
 #include "Init.hpp"

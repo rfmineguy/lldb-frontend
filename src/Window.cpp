@@ -30,9 +30,7 @@ Window::Window(const std::string& title, int width, int height):
     auto target = debuggerCtx.GetTarget();
     auto fullpath = std::filesystem::canonical(executable->c_str());
 
-    auto working_dir = Util::GetTargetSourceRootDirectory(fullpath)->string();
-    FileHeirarchy& fh = imguiLayer.GetFileHeirarchy();
-    fh.SetWorkingDir(working_dir);
+    FileHierarchy& fh = imguiLayer.GetFileHierarchy();
 
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       lldb::SBModule mod = target.GetModuleAtIndex(i);
@@ -48,10 +46,12 @@ Window::Window(const std::string& title, int width, int height):
           continue;
         } 
 
-        fh.AddFile(directory, name);
+        fh.AddFile(std::filesystem::path(directory) / name);
       }
     }
-    fh.Print();
+
+    fh.ComputeTree();
+    // fh.Print();
 
     Util::PrintTargetModules(target);
     Util::PrintModuleCompileUnits(target, 0);

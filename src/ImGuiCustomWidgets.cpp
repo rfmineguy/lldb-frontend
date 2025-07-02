@@ -1,12 +1,12 @@
 #include "ImGuiCustomWidgets.hpp"
 #include "ImGuiLayer.hpp"
-#include "FileHeirarchy.hpp"
+#include "FileHierarchy.hpp"
 #include "LLDBDebugger.hpp"
 #include <imgui.h>
 
 namespace ImGuiCustom {
-  void Breakpoint(int id, FileHeirarchy::HeirarchyElement& element, ImGuiLayer& imguiLayer, bool active) {
-    if (element.lines->empty()) return;
+  void Breakpoint(int id, FileHierarchy::TreeNode& node, ImGuiLayer& imguiLayer, bool active) {
+    if (node.lines->empty()) return;
     ImVec2 cursorPos = ImGui::GetCursorScreenPos();
     float radius = 6.0f;
     float diameter = radius * 2.0f;
@@ -16,9 +16,9 @@ namespace ImGuiCustom {
     if (ImGui::IsItemClicked())
     {
       auto& debugger = imguiLayer.GetDebugger();
-      auto actioned = (!element.lines->at(id).bp) ?
-        debugger.AddBreakpoint(element, id) :
-        debugger.RemoveBreakpoint(element, id);
+      auto actioned = (!node.lines->at(id).bp) ?
+        debugger.AddBreakpoint(node, id) :
+        debugger.RemoveBreakpoint(node, id);
     }
 
     // Get draw list and draw circle
@@ -32,7 +32,7 @@ namespace ImGuiCustom {
     drawList->AddCircle(center, radius, circle_color, 16, 1.5f);
 
     // If checked, draw filled circle
-    if (element.lines->at(id).bp) {
+    if (node.lines->at(id).bp) {
       drawList->AddCircleFilled(center, radius - 2.0f, circle_color, 16);
     }
   }
