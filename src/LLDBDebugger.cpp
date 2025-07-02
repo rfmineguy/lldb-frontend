@@ -218,7 +218,7 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
     case LLDB_CommandParser::ParsedCommandType::BREAKPOINT_FILE_LINE:
       {
         auto bpfileline = std::get<LLDB_CommandParser::BPFileLine>(parsed_command.command);
-        auto node = fh.GetElementByLocalPath(std::filesystem::path(bpfileline.file));
+        auto node = fh.GetElementByFilename(bpfileline.file);
         if (!node) {
           Logger::Err("File '{}' does not exist in target", bpfileline.file);
         }
@@ -265,16 +265,21 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
 
           auto fs = line.GetFileSpec();
           int lineno = line.GetLine();
-          Logger::Info("Name: {}, Lineno: {}", fs.GetFilename(), lineno);
+          Logger::Info("Dir: {}, Name: {}, Lineno: {}", fs.GetDirectory(), fs.GetFilename(), lineno);
 
-          auto node = fh.GetElementByLocalPath(std::filesystem::path(fs.GetFilename()));
-
-          if (AddBreakpoint(*node, lineno)) {
-            Logger::Info("Break on symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
+          auto path = std::filesystem::path(fs.GetDirectory()) / fs.GetFilename();
+          if (auto node = fh.GetElementByLocalPath(path)) {
+            if (AddBreakpoint(*node, lineno)) {
+              Logger::Info("Break on symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
+            }
+            else {
+              Logger::Crit("Failed to set breakpoint at symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
+            }
           }
           else {
-            Logger::Crit("Failed to set breakpoint at symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
+            Logger::Crit("Failed to GetElementByLocalPath with {}", path.string());
           }
+
         }
         break;
       }
