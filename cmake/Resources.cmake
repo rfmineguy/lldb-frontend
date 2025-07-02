@@ -27,3 +27,4 @@ endif()
 message(STATUS "Output directory for ${target_name} will be: ${LLDB_FRONTEND_BUILD_DIRECTORY}")
 
 file(COPY resources DESTINATION ${LLDB_FRONTEND_BUILD_DIRECTORY})
+install(DIRECTORY resources DESTINATION bin COMPONENT Runtime)
