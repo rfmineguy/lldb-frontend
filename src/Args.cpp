@@ -6,6 +6,8 @@ namespace lldb_frontend {
   void Args::SetupOptions() {
     parser.add_argument("--executable")
       .help("The program you wish to debug");
+    parser.add_argument("--autoexec")
+      .help("Script file containing autoexec instructions");
   }
 
   bool Args::Parse(int argc, char **argv) {
