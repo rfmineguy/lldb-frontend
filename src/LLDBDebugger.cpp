@@ -283,6 +283,11 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
         }
         break;
       }
+    case LLDB_CommandParser::ParsedCommandType::RUN:
+      {
+        LaunchTarget();
+        break;
+      }
     case LLDB_CommandParser::ParsedCommandType::STEP:
       {
         GetProcess().GetSelectedThread().StepInto();
