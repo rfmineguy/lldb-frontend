@@ -52,7 +52,7 @@ void Texture::Load() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   // get full path
-  auto full = std::filesystem::canonical(local_path);
+  auto full = std::filesystem::absolute(local_path);
   Logger::Info("Full path: {}", full.string());
 
   // stbi_set_flip_vertically_on_load(true);
