@@ -27,9 +27,11 @@ include(cmake/ImGui.cmake)
 FetchContent_Declare(argparse GIT_REPOSITORY https://github.com/p-ranav/argparse.git GIT_TAG v3.2 GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(argparse)
 
+FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb.git GIT_SHALLOW TRUE)
+FetchContent_MakeAvailable(stb)
+
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
-add_library(stb  libs/stb/stb_image_impl.c)
 
 include(cmake/fmt.cmake)
 
@@ -42,7 +44,7 @@ add_library(lldbfrontend src/liblldbfrontend.cpp)
 target_compile_features(lldbfrontend PRIVATE cxx_std_23)
 
 target_link_libraries(lldbfrontend PRIVATE
-  glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only stb)
+  glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only)
 
 # lldb-frontend [EXECUTABLE]
 
@@ -60,6 +62,7 @@ function(target_all_directories TARGET)
     ${CMAKE_SOURCE_DIR}/libs/tfd
     ${CMAKE_SOURCE_DIR}/libs/stb
     ${imgui_SOURCE_DIR}
+    ${stb_SOURCE_DIR}
     ${argparse_SOURCE_DIR}/include
     ${fmt_SOURCE_DIR}/include)
 endfunction()

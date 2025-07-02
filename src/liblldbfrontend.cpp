@@ -14,3 +14,4 @@
 #include "TempRedirect.cpp"
 #include "Texture.cpp"
 #include "Resources.cpp"
+#include "stb_impl.c"
