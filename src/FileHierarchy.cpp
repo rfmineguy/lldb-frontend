@@ -236,7 +236,7 @@ FileHierarchy::TreeNode* FileHierarchy::GetElementByFilenameRec(TreeNode& node, 
 }
 
 FileHierarchy::TreeNode* FileHierarchy::GetElementByLocalPathRec(TreeNode& node, const std::filesystem::path& localpath) const {
-  if (node.GetPath() == localpath) return &node;
+  if (node.path == localpath) return &node;
   for (auto& [key, child] : node.children) {
       auto result = GetElementByLocalPathRec(child, localpath);
       if (result) return result;
