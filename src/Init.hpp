@@ -17,6 +17,8 @@ namespace lldb_frontend {
       static void InitImGui(const Window&);
       static void DeinitImGui();
 
+      static std::pair<size_t, size_t> GetImGuiIniDimensions();
+
       static void TerminateGlfw();
   };
 }

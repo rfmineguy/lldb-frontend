@@ -49,7 +49,10 @@ int main(int argc, char** argv) {
   }
 
   lldb_frontend::Init::InitGlfw();
-  Window w("LLDB Frontend", 600, 600);
+
+  auto [width, height] = lldb_frontend::Init::GetImGuiIniDimensions();
+
+  Window w("LLDB Frontend", width, height);
   lldb_frontend::Init::InitGlad();
   lldb_frontend::Resources::LoadAll();
   lldb_frontend::Init::InitImGui(w);
