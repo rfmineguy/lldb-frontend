@@ -8,8 +8,8 @@ namespace lldb_frontend {
   Resources::~Resources() {}
   void Resources::LoadAll() {
     Logger::ScopedGroup g("Resources::LoadAll");
-    textures.emplace("folder", "assets/Folder.png");
-    textures.emplace("file",   "assets/File.png");
+    textures.emplace("folder", "resources/Folder.png");
+    textures.emplace("file",   "resources/File.png");
   }
   const Texture* Resources::GetTexture(const std::string &name) {
     if (!textures.contains(name)) return nullptr;
