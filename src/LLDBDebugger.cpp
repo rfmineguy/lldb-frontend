@@ -127,33 +127,34 @@ void LLDBDebugger::SetTarget(lldb::SBTarget target) {
   debugger.SetSelectedTarget(target);
 }
 
-bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int id) {
-  if (element.lines->empty()) {
+bool LLDBDebugger::AddBreakpoint(FileHierarchy::TreeNode& node, int id) {
+  if (node.lines->empty()) {
     // If we try to add a breakpoint and the file hasnt been loaded yet, we have to load it
     //   so that we have access to its lines
     // There might be a better way to do this, but for now this works fine.
-    element.LoadFromDisk();
+    node.LoadFromDisk();
   }
 
-    if (id < 0 || id >= static_cast<int>(element.lines->size())) {
+    if (id < 0 || id >= static_cast<int>(node.lines->size())) {
         return false;
     }
 
-    Line& line = element.lines->at(id);
+    Line& line = node.lines->at(id);
     if (line.bp) {
         return false;
     }
 
     auto target = GetTarget();
 
-    const char* filename = element.c_str;
+    const char* filename = node.name.c_str();
     int line_number = id + 1;
     lldb::SBBreakpoint bp = target.BreakpointCreateByLocation(filename, line_number);
 
     if (bp.IsValid()) {
         line.bp = true;
         line.bp_id = bp.GetID();
-        auto real_filename = element.full_path.string();
+        auto& path = node.path;
+        auto real_filename = path.string();
         id_breakpoint_data[line.bp_id] = {real_filename, line_number};
         Logger::Info("Set breakpoint at {} on line {}", filename, line_number);
         return true;
@@ -162,13 +163,13 @@ bool LLDBDebugger::AddBreakpoint(FileHeirarchy::HeirarchyElement& element, int i
     return false;
 }
 
-bool LLDBDebugger::RemoveBreakpoint(FileHeirarchy::HeirarchyElement& element, int id) {
-  if (element.lines->empty()) return false;
-    if (id < 0 || id >= static_cast<int>(element.lines->size())) {
+bool LLDBDebugger::RemoveBreakpoint(FileHierarchy::TreeNode& node, int id) {
+  if (node.lines->empty()) return false;
+    if (id < 0 || id >= static_cast<int>(node.lines->size())) {
         return false;
     }
 
-    Line& line = element.lines->at(id);
+    Line& line = node.lines->at(id);
     if (!line.bp || line.bp_id == LLDB_INVALID_BREAK_ID) {
         return false;
     }
@@ -208,7 +209,7 @@ LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t i
   return it->second;
 }
 
-LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, FileHeirarchy& fh) {
+LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, FileHierarchy& fh) {
   auto parsed_command = commandParser.Parse(command);
   switch (parsed_command.type) {
     case LLDB_CommandParser::ParsedCommandType::EMPTY:
@@ -217,12 +218,12 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
     case LLDB_CommandParser::ParsedCommandType::BREAKPOINT_FILE_LINE:
       {
         auto bpfileline = std::get<LLDB_CommandParser::BPFileLine>(parsed_command.command);
-        auto element = fh.GetElementByLocalPath(bpfileline.file);
-        if (!element) {
+        auto node = fh.GetElementByLocalPath(std::filesystem::path(bpfileline.file));
+        if (!node) {
           Logger::Err("File '{}' does not exist in target", bpfileline.file);
         }
         else {
-          if (AddBreakpoint(*element, bpfileline.line)) {
+          if (AddBreakpoint(*node, bpfileline.line)) {
             Logger::Info("Breakpoint in file '{}' line {}", bpfileline.file, bpfileline.line);
           }
           else {
@@ -266,9 +267,9 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
           int lineno = line.GetLine();
           Logger::Info("Name: {}, Lineno: {}", fs.GetFilename(), lineno);
 
-          auto element = fh.GetElementByLocalPath(fs.GetFilename());
+          auto node = fh.GetElementByLocalPath(std::filesystem::path(fs.GetFilename()));
 
-          if (AddBreakpoint(*element, lineno)) {
+          if (AddBreakpoint(*node, lineno)) {
             Logger::Info("Break on symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
           }
           else {

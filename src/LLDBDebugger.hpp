@@ -2,7 +2,7 @@
 #define LLDB_DEBUGGER_HPP
 #include <lldb/API/LLDB.h>
 #include <string>
-#include "FileHeirarchy.hpp"
+#include "FileHierarchy.hpp"
 #include <thread>
 
 struct FileContext;
@@ -46,8 +46,8 @@ class LLDBDebugger {
     lldb::SBProcess GetProcess();
     void SetTarget(lldb::SBTarget target);
 
-    bool AddBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
-    bool RemoveBreakpoint(FileHeirarchy::HeirarchyElement&, int id);
+    bool AddBreakpoint(FileHierarchy::TreeNode&, int id);
+    bool RemoveBreakpoint(FileHierarchy::TreeNode&, int id);
   private:
     void HitBreakpoint(lldb::break_id_t b_id);
   public:
@@ -56,7 +56,7 @@ class LLDBDebugger {
     bool IsActiveLine(int line_number);
 
   public:
-    ExecResult ExecCommand(const std::string&, FileHeirarchy&);
+    ExecResult ExecCommand(const std::string&, FileHierarchy&);
 
   private:
     void LLDBEventThread();

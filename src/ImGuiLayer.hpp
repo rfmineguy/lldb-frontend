@@ -1,6 +1,6 @@
 #ifndef IMGUI_LAYER_HPP
 #define IMGUI_LAYER_HPP
-#include "FileHeirarchy.hpp"
+#include "FileHierarchy.hpp"
 #include "FileContext.hpp"
 #include <unordered_map>
 #include <vector>
@@ -18,11 +18,11 @@ class ImGuiLayer {
     void EndDockspace();
     void Draw();
     LLDBDebugger& GetDebugger();
-    FileHeirarchy& GetFileHeirarchy();
+    FileHierarchy& GetFileHierarchy();
     void DrawFilesNotFoundModal();
 
   private:
-    bool LoadFile(const std::string&);
+    bool LoadFile(const std::filesystem::path&);
 
   private:
     void DrawDebugWindow();
@@ -32,12 +32,12 @@ class ImGuiLayer {
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
 
-    bool ShowHeirarchyItem(FileHeirarchy::HeirarchyElement*);
-    void FileHeirarchyRecursive(FileHeirarchy::HeirarchyElement*);
+    bool ShowHierarchyItem(FileHierarchy::TreeNode&, const std::filesystem::path&, const std::filesystem::path&);
+    void FileHierarchyRecursive(const std::filesystem::path&, FileHierarchy::TreeNode&);
     void DrawFileBrowser();
 
   private:
-    void DrawCodeFile(FileHeirarchy::HeirarchyElement&);
+    void DrawCodeFile(FileHierarchy::TreeNode&);
 
   private:
     static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
@@ -45,11 +45,11 @@ class ImGuiLayer {
   private:
     LLDBDebugger& debugger;
     Window* window_ref;
-    FileHeirarchy fh;
+    FileHierarchy fh;
     std::unordered_map<std::string, FileContext> fileContentsMap;
-    std::vector<FileHeirarchy::HeirarchyElement*> openFiles;
+    std::vector<FileHierarchy::TreeNode*> openFiles;
     bool m_FilesNotFoundModal_open = false;
-    std::vector<const FileHeirarchy::HeirarchyElement*> m_FilesNotFoundModal_files;
+    std::vector<const FileHierarchy::TreeNode*> m_FilesNotFoundModal_files;
 };
 
 #endif

@@ -95,19 +95,20 @@ LLDBDebugger& ImGuiLayer::GetDebugger()
   return debugger;
 }
 
-FileHeirarchy& ImGuiLayer::GetFileHeirarchy() {
+FileHierarchy& ImGuiLayer::GetFileHierarchy() {
   return fh;
 }
 
-bool ImGuiLayer::LoadFile(const std::string& fullpath) {
+bool ImGuiLayer::LoadFile(const std::filesystem::path& fullpath) {
   Logger::ScopedGroup g("ImGuiLayer::LoadFile");
-  if (!fileContentsMap.contains(fullpath)) {
-    Logger::Info("Loading: {}", fullpath);
+  auto fullpath_string = fullpath.string();
+  if (!fileContentsMap.contains(fullpath_string)) {
+    Logger::Info("Loading: {}", fullpath_string);
 
-    fileContentsMap[fullpath];
+    fileContentsMap[fullpath_string];
     std::ifstream f(fullpath);
-    FileContext& ctx = fileContentsMap.at(fullpath);
-    ctx.filename = fullpath;
+    FileContext& ctx = fileContentsMap.at(fullpath_string);
+    ctx.filename = fullpath.string();
 
     if (f.is_open()) {
       std::string line;
@@ -117,12 +118,12 @@ bool ImGuiLayer::LoadFile(const std::string& fullpath) {
       f.close();
     }
     else {
-      Logger::Err("Failed to read {}", fullpath);
+      Logger::Err("Failed to read {}", fullpath.string());
       return false;
     }
   }
   else {
-    Logger::Info("{} already loaded", fullpath);
+    Logger::Info("{} already loaded", fullpath.string());
   }
   return true;
 }
@@ -148,22 +149,19 @@ void ImGuiLayer::DrawDebugWindow() {
       if (!source_directory.has_value()) {
         source_directory = path.root_path();
       }
-      auto working_dir = source_directory->string();
-      Logger::Info("Working Dir: {}", working_dir);
-
-      fh.SetWorkingDir(working_dir);
 
       for (size_t i = 0; i < target.GetNumModules(); i++) {
         lldb::SBModule mod = target.GetModuleAtIndex(i);
         for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
           lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
-          auto directory = cu.GetFileSpec().GetDirectory();
+          auto directory_c_str = cu.GetFileSpec().GetDirectory();
+          auto directory = std::filesystem::path(directory_c_str);
           auto name = cu.GetFileSpec().GetFilename();
 
-          fh.AddFile(directory, name);
+          fh.AddFile(directory / name);
         }
       }
-      fh.Print();
+      fh.ComputeTree();
 
       Util::PrintTargetModules(target);
       Util::PrintModuleCompileUnits(target, 0);
@@ -191,23 +189,19 @@ void ImGuiLayer::DrawDebugWindow() {
     if (!source_directory.has_value()) {
       source_directory = t_path.root_path();
     }
-    auto working_dir = source_directory->string();
-    Logger::Info("Working Dir: {}", working_dir);
-
-    fh.SetWorkingDir(working_dir);
 
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       lldb::SBModule mod = target.GetModuleAtIndex(i);
       for (size_t j = 0; j < mod.GetNumCompileUnits(); j++) {
         lldb::SBCompileUnit cu = mod.GetCompileUnitAtIndex(j);
-        auto directory = cu.GetFileSpec().GetDirectory();
+        auto directory_c_str = cu.GetFileSpec().GetDirectory();
+        auto directory = std::filesystem::path(directory_c_str);
         auto name = cu.GetFileSpec().GetFilename();
-        if (directory && name)
-          fh.AddFile(directory, name);
+        if (name)
+          fh.AddFile(directory / name);
       }
     }
-    fh.Print();
-    fh.GetRoot();
+    fh.ComputeTree();
 
     Util::PrintTargetModules(target);
     Util::PrintModuleCompileUnits(target, 0);
@@ -217,15 +211,16 @@ void ImGuiLayer::DrawDebugWindow() {
   ImGui::End();
 }
 
-void ImGuiLayer::DrawCodeFile(FileHeirarchy::HeirarchyElement& element) {
-  bool active_file = debugger.IsActiveFile(element.full_path_string);
-  if (element.lines->empty()) return;
-  for (int i = 0; i < element.lines->size(); i++) {
-    auto& line = element.lines->at(i);
+void ImGuiLayer::DrawCodeFile(FileHierarchy::TreeNode& node) {
+  auto node_path_string = node.path.string();
+  bool active_file = debugger.IsActiveFile(node_path_string.c_str());
+  if (node.lines->empty()) return;
+  for (int i = 0; i < node.lines->size(); i++) {
+    auto& line = node.lines->at(i);
     ImGui::PushID(i);
     auto line_number = i + 1;
     auto line_active = debugger.IsActiveLine(line_number);
-    ImGuiCustom::Breakpoint(i, element, *this, line_active); ImGui::SameLine();
+    ImGuiCustom::Breakpoint(i, node, *this, line_active); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
@@ -247,8 +242,7 @@ void ImGuiLayer::DrawCodeWindow() {
   ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_Reorderable;
   if (ImGui::BeginTabBar("Code File Tabs", tab_bar_flags)) {
     for (auto& file : openFiles) {
-      auto local_path_string = file->local_path.string();
-      auto full_path_string = file->full_path.string();
+      auto local_path_string = file->name;
       if (ImGui::BeginTabItem(local_path_string.c_str())) {
         DrawCodeFile(*file);
         ImGui::EndTabItem();
@@ -284,47 +278,50 @@ void ImGuiLayer::DrawControlsWindow() {
   ImGui::End();
 }
 
-bool ImGuiLayer::ShowHeirarchyItem(FileHeirarchy::HeirarchyElement* element) {
-  bool isLeaf = element->children.empty();
+bool ImGuiLayer::ShowHierarchyItem(FileHierarchy::TreeNode& node, const std::filesystem::path& parent_path, const std::filesystem::path& path) {
+  std::string tex_id;
+  auto type = FileHierarchy::GetTypeFromNode(node);
+  switch (type) {
+    case FileHierarchy::TreeNodeType::FOLDER: tex_id = "folder"; break;
+    case FileHierarchy::TreeNodeType::FILE:   tex_id = "file"; break;
+    default: tex_id = "unknown"; break;
+  }
+  bool isLeaf = type == FileHierarchy::TreeNodeType::FILE;
 
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
   if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
 
   Texture* tex = nullptr;
-  std::string tex_id = "";
-  switch (element->type) {
-    case FileHeirarchy::HeirarchyElementType::FOLDER: tex_id = "folder"; break;
-    case FileHeirarchy::HeirarchyElementType::FILE:   tex_id = "file"; break;
-  }
   if (auto tex = lldb_frontend::Resources::GetTexture(tex_id)) {
     auto v = tex->GetTextureId();
     ImGui::ImageWithBg((ImTextureID)(intptr_t)v, tex->GetImGuiSizeScaled(0.1f));
     ImGui::SameLine();
   }
-  bool opened = ImGui::TreeNodeEx(element->local_path.string().c_str(), flags);
+  std::string remainder = path.string().substr(parent_path.string().length());
+  bool opened = ImGui::TreeNodeEx(remainder.c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
-    auto element_full_path_string = element->full_path.string();
-    Logger::Info("Clicked {}", element_full_path_string);
-    element->LoadFromDisk();
-    if (LoadFile(element_full_path_string)) {
-      if (std::find(openFiles.begin(), openFiles.end(), element) == openFiles.end()) {
-        openFiles.push_back((FileHeirarchy::HeirarchyElement*)element);
+    Logger::Info("Clicked {}", path.string());
+    node.LoadFromDisk();
+    auto& path = node.path;
+    if (LoadFile(path)) {
+      if (std::find(openFiles.begin(), openFiles.end(), &node) == openFiles.end()) {
+        openFiles.push_back(&node);
       }
     }
     else {
       m_FilesNotFoundModal_open = true;
-      m_FilesNotFoundModal_files.push_back(element);
+      m_FilesNotFoundModal_files.push_back(&node);
     }
   }
   return opened;
 }
 
-void ImGuiLayer::FileHeirarchyRecursive(FileHeirarchy::HeirarchyElement* element) {
-  if (element == nullptr) return;
-  if (ShowHeirarchyItem(element)) {
-    for (auto& [key, child] : element->children) {
-      FileHeirarchyRecursive(child);
-    }
+void ImGuiLayer::FileHierarchyRecursive(const std::filesystem::path& parent_path, FileHierarchy::TreeNode& node) {
+  auto [lookahead_path, lookahead_node_ptr] = node.LookaheadPath();
+  auto& lookahead_node = *lookahead_node_ptr;
+  if (ShowHierarchyItem(lookahead_node, parent_path, lookahead_path)) {
+    for (auto& [key, child] : lookahead_node.children)
+      FileHierarchyRecursive(lookahead_path, child);
     ImGui::TreePop();
   }
 }
@@ -332,7 +329,15 @@ void ImGuiLayer::FileHeirarchyRecursive(FileHeirarchy::HeirarchyElement* element
 void ImGuiLayer::DrawFileBrowser() {
   ImGui::Begin("File Browser");
 
-  FileHeirarchyRecursive(fh.GetRoot());
+  auto& root = fh.GetRoot();
+
+  if (root.name.empty() && root.children.empty()) {
+    ImGui::End();
+    return;
+  }
+
+  for (auto& [key, child] : root.children)
+    FileHierarchyRecursive(std::filesystem::path(""), child);
 
   ImGui::End();
 }
@@ -408,7 +413,7 @@ void ImGuiLayer::DrawFilesNotFoundModal()
         for (auto& element : m_FilesNotFoundModal_files)
         {
           static int clicked = 0;
-          if (ImGui::Button(element->c_str))
+          if (ImGui::Button(element->name.c_str()))
               clicked++;
           if (clicked & 1)
           {
