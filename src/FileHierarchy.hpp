@@ -47,10 +47,12 @@ class FileHierarchy {
   public:
     void AddFile(const std::filesystem::path& path);
     TreeNode& GetRoot();
+    TreeNode* GetElementByFilename(const std::string& filename);
     TreeNode* GetElementByLocalPath(const std::filesystem::path& localpath);
     void ComputeTree();
 
   private:
+    TreeNode* GetElementByFilenameRec(TreeNode& node, const std::string& filename) const;
     TreeNode* GetElementByLocalPathRec(TreeNode& node, const std::filesystem::path& localpath) const;
 
   private:

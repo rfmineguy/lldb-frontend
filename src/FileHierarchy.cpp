@@ -1,5 +1,6 @@
 #include "FileHierarchy.hpp"
 #include "Logger.hpp"
+#include "Util.hpp"
 #include <iostream>
 #include <fstream>
 #if defined(_WIN32)
@@ -105,17 +106,9 @@ bool FileHierarchy::TreeNode::LoadFromDisk() {
   Logger::ScopedGroup g("TreeNode::LoadFromDisk");
   if (!lines.has_value()) {
     lines = std::vector<Line>{};
-    std::ifstream f(path);
-    if (!f.is_open()) {
-        Logger::Crit("Failed to load {} from disk", path.string());
-        return false;
+    if (Util::ReadFileLinesIntoVector(path, lines.value())) {
+      Logger::Info("Loaded {} from disk", path.string());
     }
-    std::string line;
-    while (std::getline(f, line)) {
-        lines->push_back(Line{.line = line, .bp = false});
-    }
-    f.close();
-    Logger::Info("Loaded {} from disk", path.string());
   }
   return true;
 }
@@ -195,6 +188,14 @@ FileHierarchy::TreeNode& FileHierarchy::GetRoot() {
   return root;
 }
 
+FileHierarchy::TreeNode* FileHierarchy::GetElementByFilename(const std::string& filename) {
+  for (auto& [key, child] : root.children) {
+      auto found = GetElementByFilenameRec(child, filename);
+      if (found) return found;
+  }
+  return nullptr;
+}
+
 FileHierarchy::TreeNode* FileHierarchy::GetElementByLocalPath(const std::filesystem::path& localpath) {
   for (auto& [key, child] : root.children) {
       auto found = GetElementByLocalPathRec(child, localpath);
@@ -225,8 +226,17 @@ void FileHierarchy::ComputeTree()
   root.Print();
 }
 
+FileHierarchy::TreeNode* FileHierarchy::GetElementByFilenameRec(TreeNode& node, const std::string& filename) const {
+  if (node.name == filename) return &node;
+  for (auto& [key, child] : node.children) {
+      auto result = GetElementByFilenameRec(child, filename);
+      if (result) return result;
+  }
+  return nullptr;
+}
+
 FileHierarchy::TreeNode* FileHierarchy::GetElementByLocalPathRec(TreeNode& node, const std::filesystem::path& localpath) const {
-  if (node.GetPath() == localpath) return &node;
+  if (node.path == localpath) return &node;
   for (auto& [key, child] : node.children) {
       auto result = GetElementByLocalPathRec(child, localpath);
       if (result) return result;

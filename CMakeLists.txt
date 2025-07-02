@@ -98,3 +98,4 @@ include(cmake/CPack.cmake)
 
 include(cmake/imgui.ini.cmake)
 include(cmake/Resources.cmake)
+include(cmake/AutoExec.cmake)

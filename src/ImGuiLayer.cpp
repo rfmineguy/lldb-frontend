@@ -99,32 +99,16 @@ FileHierarchy& ImGuiLayer::GetFileHierarchy() {
   return fh;
 }
 
-bool ImGuiLayer::LoadFile(const std::filesystem::path& fullpath) {
+bool ImGuiLayer::LoadFile(FileHierarchy::TreeNode& node) {
   Logger::ScopedGroup g("ImGuiLayer::LoadFile");
-  auto fullpath_string = fullpath.string();
-  if (!fileContentsMap.contains(fullpath_string)) {
-    Logger::Info("Loading: {}", fullpath_string);
-
-    fileContentsMap[fullpath_string];
-    std::ifstream f(fullpath);
-    FileContext& ctx = fileContentsMap.at(fullpath_string);
-    ctx.filename = fullpath.string();
-
-    if (f.is_open()) {
-      std::string line;
-      while (std::getline(f, line)) {
-        ctx.lines.push_back({.line = line});
-      }
-      f.close();
-    }
-    else {
-      Logger::Err("Failed to read {}", fullpath.string());
-      return false;
-    }
+  if (node.lines.has_value()) {
+    Logger::Info("{} already loaded", node.path.string());
+    return true;
   }
-  else {
-    Logger::Info("{} already loaded", fullpath.string());
-  }
+  node.lines = std::vector<Line>{0, Line{}};
+  Logger::Info("Loading: {}", node.path.string());
+  Util::ReadFileLinesIntoVector(node.path, *node.lines);
+  Logger::Info("Loaded");
   return true;
 }
 
@@ -302,16 +286,7 @@ bool ImGuiLayer::ShowHierarchyItem(FileHierarchy::TreeNode& node, const std::fil
   if (isLeaf && ImGui::IsItemClicked(0)) {
     Logger::Info("Clicked {}", path.string());
     node.LoadFromDisk();
-    auto& path = node.path;
-    if (LoadFile(path)) {
-      if (std::find(openFiles.begin(), openFiles.end(), &node) == openFiles.end()) {
-        openFiles.push_back(&node);
-      }
-    }
-    else {
-      m_FilesNotFoundModal_open = true;
-      m_FilesNotFoundModal_files.push_back(&node);
-    }
+    FrontendLoadFile(node);
   }
   return opened;
 }
@@ -434,5 +409,19 @@ void ImGuiLayer::DrawFilesNotFoundModal()
         }
         ImGui::EndPopup();
     }
+  }
+}
+
+bool ImGuiLayer::FrontendLoadFile(FileHierarchy::TreeNode& node) {
+  if (LoadFile(node)) {
+    if (std::find(openFiles.begin(), openFiles.end(), &node) == openFiles.end()) {
+      openFiles.push_back(&node);
+    }
+    return true;
+  }
+  else {
+    m_FilesNotFoundModal_open = true;
+    m_FilesNotFoundModal_files.push_back(&node);
+    return false;
   }
 }

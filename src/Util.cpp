@@ -1,6 +1,8 @@
 #include "Util.hpp"
+#include "FileContext.hpp"
 #include "Logger.hpp"
 #include <iostream>
+#include <fstream>
 #if defined(_WIN32)
 #include <windows.h>
 #elif defined(__APPLE__)
@@ -9,6 +11,7 @@
 #include <unistd.h>
 #endif
 
+struct Line;
 namespace Util {
   void PrintTargetModules(lldb::SBTarget& target) {
     Logger::ScopedGroup g("PrintTargetModules");
@@ -155,5 +158,20 @@ namespace Util {
         at_root = true;
     }
     return std::nullopt;
+  }
+
+  bool ReadFileLinesIntoVector(const std::filesystem::path& filepath, std::vector<Line>& lines) {
+    std::ifstream f(filepath);
+    if (!f.is_open()) {
+      Logger::Crit("Failed to load {} from disk", filepath.string());
+      f.close();
+      return false;
+    }
+    std::string line;
+    while (std::getline(f, line)) {
+      lines.push_back(Line{.line = line, .bp = false});
+    }
+    f.close();
+    return true;
   }
 }
