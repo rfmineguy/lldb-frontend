@@ -15,3 +15,5 @@
 #include "FileHeirarchy.hpp"
 #include "LLDBDebugger.hpp"
 #include "TempRedirect.cpp"
+#include "Texture.cpp"
+#include "Resources.cpp"

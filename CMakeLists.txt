@@ -29,6 +29,7 @@ FetchContent_MakeAvailable(argparse)
 
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
+add_library(stb  libs/stb/stb_image_impl.c)
 
 include(cmake/fmt.cmake)
 
@@ -38,12 +39,13 @@ set(SOURCES src/lldb-frontend.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only)
+target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only stb)
 target_link_directories(${PROJECT_NAME} PRIVATE ${LLVM_LIB_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE 
   ${LLVM_INCLUDE_DIR} 
   ${CMAKE_SOURCE_DIR}/libs/glad/include 
   ${CMAKE_SOURCE_DIR}/libs/tfd
+  ${CMAKE_SOURCE_DIR}/libs/stb
   ${imgui_SOURCE_DIR}
   ${argparse_INCLUDE_DIR}
   ${fmt_SOURCE_DIR}/include)
@@ -71,3 +73,4 @@ include(cmake/Install.cmake)
 include(cmake/CPack.cmake)
 
 include(cmake/imgui.ini.cmake)
+include(cmake/Resources.cmake)

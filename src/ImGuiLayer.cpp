@@ -12,6 +12,7 @@
 #include "Window.hpp"
 #include "Util.hpp"
 #include "Logger.hpp"
+#include "Resources.hpp"
 
 ImGuiLayer::ImGuiLayer(LLDBDebugger& debugger):
   debugger(debugger)
@@ -280,6 +281,17 @@ bool ImGuiLayer::ShowHeirarchyItem(FileHeirarchy::HeirarchyElement* element) {
   ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
   if (isLeaf) flags |= ImGuiTreeNodeFlags_Leaf;
 
+  Texture* tex = nullptr;
+  std::string tex_id = "";
+  switch (element->type) {
+    case FileHeirarchy::HeirarchyElementType::FOLDER: tex_id = "folder"; break;
+    case FileHeirarchy::HeirarchyElementType::FILE:   tex_id = "file"; break;
+  }
+  if (auto tex = lldb_frontend::Resources::GetTexture(tex_id)) {
+    auto v = tex->GetTextureId();
+    ImGui::ImageWithBg((ImTextureID)(intptr_t)v, tex->GetImGuiSizeScaled(0.1f));
+    ImGui::SameLine();
+  }
   bool opened = ImGui::TreeNodeEx(element->local_path.string().c_str(), flags);
   if (isLeaf && ImGui::IsItemClicked(0)) {
     auto element_full_path_string = element->full_path.string();

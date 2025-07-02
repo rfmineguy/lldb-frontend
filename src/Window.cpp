@@ -41,6 +41,13 @@ Window::Window(const std::string& title, int width, int height):
         auto directory = cu.GetFileSpec().GetDirectory();
         auto name = cu.GetFileSpec().GetFilename();
 
+        //NOTE: This is a temporary fix for a null pointer dereference
+        // crash on windows
+        if (!name || !directory) {
+          Logger::Crit("Something went wrong. directory = '{}', name = '{}'", directory ? directory : "null", name ? name : "null");
+          continue;
+        } 
+
         fh.AddFile(directory, name);
       }
     }

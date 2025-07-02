@@ -2,6 +2,7 @@
 #include <argparse/argparse.hpp>
 #include <iostream>
 #include "Init.hpp"
+#include "Resources.hpp"
 #include "Window.hpp"
 #include "Args.hpp"
 
@@ -51,6 +52,7 @@ int main(int argc, char** argv) {
   lldb_frontend::Init::InitGlfw();
   Window w("LLDB Frontend", 600, 600);
   lldb_frontend::Init::InitGlad();
+  lldb_frontend::Resources::LoadAll();
   lldb_frontend::Init::InitImGui(w);
   w.WindowLoop();
   lldb_frontend::Init::DeinitImGui();
