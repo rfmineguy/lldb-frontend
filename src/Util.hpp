@@ -12,7 +12,7 @@ namespace Util {
   std::string StringEscapeBackslash(const std::string& string);
   std::optional<std::filesystem::path> GetTargetSourceRootDirectory(std::filesystem::path start_dir);
 
-  bool ReadFileLinesIntoVector(const std::string& filepath, std::vector<Line>& lines);
+  bool ReadFileLinesIntoVector(const std::filesystem::path& filepath, std::vector<Line>& lines);
 }
 
 #endif

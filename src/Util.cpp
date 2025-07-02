@@ -160,10 +160,10 @@ namespace Util {
     return std::nullopt;
   }
 
-  bool ReadFileLinesIntoVector(const std::string &filepath, std::vector<Line>& lines) {
+  bool ReadFileLinesIntoVector(const std::filesystem::path& filepath, std::vector<Line>& lines) {
     std::ifstream f(filepath);
     if (!f.is_open()) {
-      Logger::Crit("Failed to load {} from disk", filepath);
+      Logger::Crit("Failed to load {} from disk", filepath.string());
       f.close();
       return false;
     }

@@ -106,7 +106,7 @@ bool FileHierarchy::TreeNode::LoadFromDisk() {
   Logger::ScopedGroup g("TreeNode::LoadFromDisk");
   if (!lines.has_value()) {
     lines = std::vector<Line>{};
-    if (Util::ReadFileLinesIntoVector(path.string(), lines.value())) {
+    if (Util::ReadFileLinesIntoVector(path, lines.value())) {
       Logger::Info("Loaded {} from disk", path.string());
     }
   }

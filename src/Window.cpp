@@ -9,6 +9,7 @@
 Window::Window(const std::string& title, int width, int height):
   imguiLayer(debuggerCtx)
 {
+  debuggerCtx.imGuiLayer_ptr = &imguiLayer;
   // Initialize glfw window
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -29,7 +30,14 @@ Window::Window(const std::string& title, int width, int height):
   if (auto executable = lldb_frontend::Args::Get<std::string>("executable")) {
     debuggerCtx.SetTarget(debuggerCtx.GetDebugger().CreateTarget(executable->c_str()));
     auto target = debuggerCtx.GetTarget();
-    auto fullpath = std::filesystem::canonical(executable->c_str());
+    std::filesystem::path fullpath;
+    try {
+      fullpath = std::filesystem::canonical(executable.value());
+    }
+    catch (const std::exception& e) {
+      Logger::Err("Unable to find --executable " + fullpath.string());
+      goto _exit;
+    }
 
     for (size_t i = 0; i < target.GetNumModules(); i++) {
       lldb::SBModule mod = target.GetModuleAtIndex(i);
@@ -65,7 +73,8 @@ Window::Window(const std::string& title, int width, int height):
         auto result = debuggerCtx.ExecCommand(line.line, fh);
       }
     }
-  }
+.  }
+_exit:
   Logger::Info("Created window");
 }
 

@@ -223,6 +223,7 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
           Logger::Err("File '{}' does not exist in target", bpfileline.file);
         }
         else {
+          imGuiLayer_ptr->FrontendLoadFile(*node);
           if (AddBreakpoint(*node, bpfileline.line)) {
             Logger::Info("Breakpoint in file '{}' line {}", bpfileline.file, bpfileline.line);
           }
@@ -269,6 +270,7 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
 
           auto path = std::filesystem::path(fs.GetDirectory()) / fs.GetFilename();
           if (auto node = fh.GetElementByLocalPath(path)) {
+            imGuiLayer_ptr->FrontendLoadFile(*node);
             if (AddBreakpoint(*node, lineno)) {
               Logger::Info("Break on symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
             }
