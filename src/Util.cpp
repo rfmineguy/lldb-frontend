@@ -131,9 +131,15 @@ namespace Util {
     ".git"
   };
 
+  bool isRoot(const std::filesystem::path& current) {
+    std::filesystem::path normalized = current.lexically_normal();
+    return normalized == normalized.root_path();
+  }
+
   std::optional<std::filesystem::path> GetTargetSourceRootDirectory(std::filesystem::path start_dir) {
     using namespace std::filesystem;
     path current = start_dir;
+    bool at_root = false;
     while (!current.empty()) {
       Logger::Info("Current: {}", current.string());
       for (const auto& marker : projectRootMarkers) {
@@ -142,7 +148,11 @@ namespace Util {
           return current;
         }
       }
+      if (at_root)
+        break;
       current = current.parent_path();
+      if (isRoot(current))
+        at_root = true;
     }
     return std::nullopt;
   }
