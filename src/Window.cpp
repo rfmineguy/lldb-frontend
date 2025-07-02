@@ -73,7 +73,7 @@ Window::Window(const std::string& title, int width, int height):
         auto result = debuggerCtx.ExecCommand(line.line, fh);
       }
     }
-.  }
+  }
 _exit:
   Logger::Info("Created window");
 }
