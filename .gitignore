@@ -4,3 +4,4 @@ build/
 build-windows/
 _CPack_Packages
 *.tar.gz
+.vscode/

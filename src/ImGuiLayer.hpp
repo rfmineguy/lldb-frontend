@@ -9,6 +9,7 @@ struct ImGuiInputTextCallbackData;
 class LLDBDebugger;
 
 class ImGuiLayer {
+  friend LLDBDebugger;
   public:
     ImGuiLayer(LLDBDebugger& debugger);
     ~ImGuiLayer();
@@ -20,9 +21,12 @@ class ImGuiLayer {
     LLDBDebugger& GetDebugger();
     FileHierarchy& GetFileHierarchy();
     void DrawFilesNotFoundModal();
+  
+  protected:
+    bool FrontendLoadFile(FileHierarchy::TreeNode&);
 
   private:
-    bool LoadFile(const std::filesystem::path&);
+    bool LoadFile(FileHierarchy::TreeNode&);
 
   private:
     void DrawDebugWindow();
@@ -46,7 +50,6 @@ class ImGuiLayer {
     LLDBDebugger& debugger;
     Window* window_ref;
     FileHierarchy fh;
-    std::unordered_map<std::string, FileContext> fileContentsMap;
     std::vector<FileHierarchy::TreeNode*> openFiles;
     bool m_FilesNotFoundModal_open = false;
     std::vector<const FileHierarchy::TreeNode*> m_FilesNotFoundModal_files;

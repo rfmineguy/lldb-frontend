@@ -11,7 +11,10 @@ struct FileContext;
 #include "LLDBCommandParser.hpp"
 #include "TempRedirect.hpp"
 
+class ImGuiLayer;
+
 class LLDBDebugger {
+  friend Window;
   public:
     enum class ExecResultStatus {
       Ok,
@@ -77,6 +80,9 @@ class LLDBDebugger {
     TempRedirect err_redirect;
     size_t err_offset = 0;
     void DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& offset);
+
+  protected:
+    ImGuiLayer* imGuiLayer_ptr = 0;
 
   private:
     LLDB_CommandParser commandParser;
