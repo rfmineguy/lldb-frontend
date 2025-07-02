@@ -35,22 +35,40 @@ include(cmake/fmt.cmake)
 
 include(cmake/LLVM.cmake)
 
-set(SOURCES src/lldb-frontend.cpp)
+# lldbfrontend [LIBRARY]
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_library(lldbfrontend src/liblldbfrontend.cpp)
+
+target_compile_features(lldbfrontend PRIVATE cxx_std_23)
+
+target_link_libraries(lldbfrontend PRIVATE
+  glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only stb)
+
+# lldb-frontend [EXECUTABLE]
+
+add_executable(${PROJECT_NAME} src/lldb-frontend.cpp)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE lldbfrontend)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw glad imgui tfd LLDB::liblldb argparse fmt-header-only stb)
 target_link_directories(${PROJECT_NAME} PRIVATE ${LLVM_LIB_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE 
-  ${LLVM_INCLUDE_DIR} 
-  ${CMAKE_SOURCE_DIR}/libs/glad/include 
-  ${CMAKE_SOURCE_DIR}/libs/tfd
-  ${CMAKE_SOURCE_DIR}/libs/stb
-  ${imgui_SOURCE_DIR}
-  ${argparse_INCLUDE_DIR}
-  ${fmt_SOURCE_DIR}/include)
+
+function(target_all_directories TARGET)
+  message(STATUS "TARGETING: ${TARGET}")
+  target_include_directories(${TARGET} PRIVATE
+    ${LLVM_INCLUDE_DIR} 
+    ${CMAKE_SOURCE_DIR}/libs/glad/include 
+    ${CMAKE_SOURCE_DIR}/libs/tfd
+    ${CMAKE_SOURCE_DIR}/libs/stb
+    ${imgui_SOURCE_DIR}
+    ${argparse_SOURCE_DIR}/include
+    ${fmt_SOURCE_DIR}/include)
+endfunction()
+
+target_all_directories(lldbfrontend)
+target_all_directories(${PROJECT_NAME})
 
 # Unicode
+
 if (NOT MSVC)
   # Unicode is always supported on compilers other than MSVC.
 elseif (FMT_UNICODE)
@@ -59,6 +77,8 @@ elseif (FMT_UNICODE)
 else ()
   target_compile_definitions(${PROJECT_NAME} PRIVATE FMT_UNICODE=0)
 endif ()
+
+# Testing
 
 set(TEST_SOURCES
   test/test.cpp
