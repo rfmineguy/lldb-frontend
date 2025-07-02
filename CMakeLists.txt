@@ -64,7 +64,8 @@ function(target_all_directories TARGET)
     ${imgui_SOURCE_DIR}
     ${stb_SOURCE_DIR}
     ${argparse_SOURCE_DIR}/include
-    ${fmt_SOURCE_DIR}/include)
+    ${fmt_SOURCE_DIR}/include
+  )
 endfunction()
 
 target_all_directories(lldbfrontend)
