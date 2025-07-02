@@ -5,7 +5,8 @@
 #include <filesystem>
 
 Texture::Texture(const std::string& local_path)
-  :local_path(local_path) {
+  :isLoaded(false), textureId(-1), width(0), height(0), channels(0),
+  local_path(local_path), full_path("") {
   // run logic for loading the texture
   Load();
 }
@@ -52,13 +53,13 @@ void Texture::Load() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   // get full path
-  auto full = std::filesystem::absolute(local_path);
-  Logger::Info("Full path: {}", full.string());
+  full_path = std::filesystem::absolute(local_path);
+  Logger::Info("Full path: {}", full_path.string());
 
   // stbi_set_flip_vertically_on_load(true);
-  unsigned char* data = stbi_load(full.string().c_str(), &width, &height, &channels, 0);
+  unsigned char* data = stbi_load(full_path.string().c_str(), &width, &height, &channels, 0);
   if (!data) {
-    Logger::Crit("Failed to load image path {}", full.string());
+    Logger::Crit("Failed to load image path {}", full_path.string());
     isLoaded = false; // redundant, but explicit
     stbi_image_free(data);
     return;
@@ -68,5 +69,5 @@ void Texture::Load() {
   stbi_image_free(data);
 
   isLoaded = true;
-  Logger::Info("Loaded image path {}", full.string());
+  Logger::Info("Loaded image path {}", full_path.string());
 }

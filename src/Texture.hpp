@@ -19,7 +19,8 @@ class Texture {
     bool isLoaded;
     unsigned int textureId;
     int width, height, channels;
-    std::string local_path, full_path;
+    std::filesystem::path full_path;
+    std::string local_path;
 };
 
 #endif
