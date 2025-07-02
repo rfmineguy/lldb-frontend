@@ -16,7 +16,11 @@ std::filesystem::path FileHierarchy::TreeNode::GetPath() const {
   std::string path_string(name);
   auto current_parent_node = parent_node;
   while (current_parent_node) {
-    if (!(current_parent_node->name.empty() || current_parent_node->name == path_sep_string)) {
+#if defined(_WIN32)
+    //if (!(current_parent_node->name.empty() || current_parent_node->name == path_sep_string)) {
+#else
+    if (!(current_parent_node->name == path_sep_string)) {
+#endif
       if (path_string != path_sep_string)
         path_string.insert(path_string.begin(), path_sep_string.begin(), path_sep_string.end());
       path_string.insert(path_string.begin(), current_parent_node->name.begin(), current_parent_node->name.end());
@@ -89,7 +93,7 @@ void FileHierarchy::TreeNode::Print(int depth) const {
     {
         std::cout << "   ";
     }
-    std::cout << name << std::endl;
+    std::cout << name << "\t| " << path.string() << std::endl;
   }
 
   for (const auto &child : children) {
