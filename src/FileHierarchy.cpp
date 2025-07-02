@@ -49,6 +49,8 @@ std::pair<std::filesystem::path, FileHierarchy::TreeNode*> FileHierarchy::TreeNo
       case TreeNodeType::FOLDER:
         folder_count++;
         break;
+      default:
+        break;
     }
   }
   if (file_count == 0 && folder_count == 1) {

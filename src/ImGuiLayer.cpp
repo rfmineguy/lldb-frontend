@@ -101,12 +101,13 @@ FileHierarchy& ImGuiLayer::GetFileHierarchy() {
 
 bool ImGuiLayer::LoadFile(const std::filesystem::path& fullpath) {
   Logger::ScopedGroup g("ImGuiLayer::LoadFile");
-  if (!fileContentsMap.contains(fullpath)) {
-    Logger::Info("Loading: {}", fullpath.string());
+  auto fullpath_string = fullpath.string();
+  if (!fileContentsMap.contains(fullpath_string)) {
+    Logger::Info("Loading: {}", fullpath_string);
 
-    fileContentsMap[fullpath];
+    fileContentsMap[fullpath_string];
     std::ifstream f(fullpath);
-    FileContext& ctx = fileContentsMap.at(fullpath);
+    FileContext& ctx = fileContentsMap.at(fullpath_string);
     ctx.filename = fullpath.string();
 
     if (f.is_open()) {
@@ -283,6 +284,7 @@ bool ImGuiLayer::ShowHierarchyItem(FileHierarchy::TreeNode& node, const std::fil
   switch (type) {
     case FileHierarchy::TreeNodeType::FOLDER: tex_id = "folder"; break;
     case FileHierarchy::TreeNodeType::FILE:   tex_id = "file"; break;
+    default: tex_id = "unknown"; break;
   }
   bool isLeaf = type == FileHierarchy::TreeNodeType::FILE;
 

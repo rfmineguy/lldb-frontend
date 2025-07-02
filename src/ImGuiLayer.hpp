@@ -46,7 +46,7 @@ class ImGuiLayer {
     LLDBDebugger& debugger;
     Window* window_ref;
     FileHierarchy fh;
-    std::unordered_map<std::filesystem::path, FileContext> fileContentsMap;
+    std::unordered_map<std::string, FileContext> fileContentsMap;
     std::vector<FileHierarchy::TreeNode*> openFiles;
     bool m_FilesNotFoundModal_open = false;
     std::vector<const FileHierarchy::TreeNode*> m_FilesNotFoundModal_files;
