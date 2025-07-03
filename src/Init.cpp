@@ -11,7 +11,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
-#include "ImGuiIniParser.hpp"
+#include <ImGuiIniParser.hpp>
 
 namespace lldb_frontend {
   void err_callback(int error, const char* description) {

@@ -30,6 +30,10 @@ FetchContent_MakeAvailable(argparse)
 FetchContent_Declare(stb GIT_REPOSITORY https://github.com/nothings/stb.git GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(stb)
 
+FetchContent_Declare(ImGuiIniParser GIT_REPOSITORY https://github.com/ZeunO8/ImGuiIniParser.git GIT_SHALLOW TRUE GIT_TAG main)
+FetchContent_MakeAvailable(ImGuiIniParser)
+include_directories(${ImGuiIniParser_SOURCE_DIR}/include)
+
 add_library(glad libs/glad/src/gl.c)
 add_library(tfd  libs/tfd/tinyfiledialogs.c)
 

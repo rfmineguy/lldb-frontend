@@ -14,5 +14,4 @@
 #include "TempRedirect.cpp"
 #include "Texture.cpp"
 #include "Resources.cpp"
-#include "ImGuiIniParser.cpp"
 #include "stb_impl.c"
