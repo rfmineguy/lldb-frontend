@@ -22,7 +22,10 @@ LLDBDebugger::LLDBDebugger() {
 }
 
 LLDBDebugger::~LLDBDebugger() {
-  target.GetProcess().Kill();           // TODO: We have a problem where the running thread keeps the main process from closing
+  auto error = process.Kill();
+  if (error.Fail()) {
+    Logger::Crit("Failed to kill process. Reason {}", error.GetCString());
+  }
   lldb::SBDebugger::Destroy(debugger);
   lldb::SBDebugger::Terminate();
   if (lldbEventThread.joinable())
