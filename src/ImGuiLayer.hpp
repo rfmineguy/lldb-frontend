@@ -4,6 +4,7 @@
 #include "FileContext.hpp"
 #include <unordered_map>
 #include <vector>
+#include <queue>
 struct Window;
 struct ImGuiInputTextCallbackData;
 class LLDBDebugger;
@@ -21,6 +22,7 @@ class ImGuiLayer {
     LLDBDebugger& GetDebugger();
     FileHierarchy& GetFileHierarchy();
     void DrawFilesNotFoundModal();
+    void SwitchToCodeFile(const std::string&);
   
   protected:
     bool FrontendLoadFile(FileHierarchy::TreeNode&);

@@ -27,6 +27,7 @@ class FileHierarchy {
       std::filesystem::path path;
       std::optional<std::vector<Line>> lines;
       std::map<std::string, TreeNode> children;
+      bool shouldSwitch;
 
       std::filesystem::path GetPath() const;
 

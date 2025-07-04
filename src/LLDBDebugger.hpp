@@ -53,13 +53,22 @@ class LLDBDebugger {
     bool RemoveBreakpoint(FileHierarchy::TreeNode&, int id);
   private:
     void HitBreakpoint(lldb::break_id_t b_id);
+    void SetActiveLine(BreakpointData bdata);
+    bool CanRunCommand();
   public:
     BreakpointData& GetBreakpointData(lldb::break_id_t id);
     bool IsActiveFile(const std::string& filename);
+    std::string GetActiveFile() const;
     bool IsActiveLine(int line_number);
 
   public:
     ExecResult ExecCommand(const std::string&, FileHierarchy&);
+
+  public:
+    void Continue();
+    void StepInto();
+    void StepOver();
+    void Next();
 
   private:
     void LLDBEventThread();

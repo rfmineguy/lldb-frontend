@@ -193,8 +193,19 @@ void LLDBDebugger::HitBreakpoint(lldb::break_id_t b_id) {
   active_line = b_data;
 }
 
+void LLDBDebugger::SetActiveLine(BreakpointData data) {
+  Logger::ScopedGroup g("SetActiveLine");
+  Logger::Info("file: {}, line: {}", data.filename, data.line_number);
+  active_line = data;
+  imGuiLayer_ptr->SwitchToCodeFile(active_line->filename);
+}
+
 bool LLDBDebugger::IsActiveFile(const std::string& filename) {
   return active_line.has_value() && active_line->filename == filename;
+}
+
+std::string LLDBDebugger::GetActiveFile() const {
+  return active_line->filename;
 }
 
 bool LLDBDebugger::IsActiveLine(int line_number) {
@@ -208,6 +219,47 @@ LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t i
     throw std::runtime_error("Could not find breakpoint with id");
   return it->second;
 }
+
+bool LLDBDebugger::CanRunCommand() {
+  if (process.IsValid() && process.GetState() == lldb::eStateStopped) {
+    lldb::SBThread thread = process.GetSelectedThread();
+    return thread.IsValid();
+  }
+  return false;
+}
+
+void LLDBDebugger::Continue() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Process cannot be continued...");
+    return;
+  }
+  process.Continue();
+}
+
+void LLDBDebugger::StepInto() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Process cannot be stepped into...");
+    return;
+  }
+  process.GetSelectedThread().StepInto();
+}
+
+void LLDBDebugger::StepOver() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Processed cannot be stepped over...");
+    return;
+  }
+  process.GetSelectedThread().StepOver();
+}
+
+void LLDBDebugger::Next() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Process cannot be nexted...");
+    return;
+  }
+  StepOver();
+}
+
 
 LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, FileHierarchy& fh) {
   auto parsed_command = commandParser.Parse(command);
@@ -292,19 +344,19 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
       }
     case LLDB_CommandParser::ParsedCommandType::STEP:
       {
-        GetProcess().GetSelectedThread().StepInto();
+        StepInto();
         Logger::Info("Step");
         break;
       }
     case LLDB_CommandParser::ParsedCommandType::NEXT:
       {
-        GetProcess().GetSelectedThread().StepOver();
+        Next();
         Logger::Info("Next");
         break;
       }
     case LLDB_CommandParser::ParsedCommandType::CONTINUE:
       {
-        GetProcess().Continue();
+        Continue();
         Logger::Info("Continue");
         break;
       }
@@ -413,6 +465,9 @@ void LLDBDebugger::LLDBEventThread() {
                       if (line_entry.IsValid()) {
                           const SBFileSpec file_spec = line_entry.GetFileSpec();
                           Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
+                          std::string fullpath = std::string(file_spec.GetDirectory()) + Util::PathSeparator + std::string(file_spec.GetFilename());
+                          SetActiveLine({fullpath, (int)line_entry.GetLine()});
+                          imGuiLayer_ptr->SwitchToCodeFile(file_spec.GetFilename());
                       }
                   }
               }

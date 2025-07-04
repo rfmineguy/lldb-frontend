@@ -13,6 +13,7 @@ namespace Util {
   std::optional<std::filesystem::path> GetTargetSourceRootDirectory(std::filesystem::path start_dir);
 
   bool ReadFileLinesIntoVector(const std::filesystem::path& filepath, std::vector<Line>& lines);
+  inline static std::string PathSeparator = std::string(1, char(std::filesystem::path::preferred_separator));
 }
 
 #endif
