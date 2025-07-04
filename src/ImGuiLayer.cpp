@@ -204,7 +204,7 @@ void ImGuiLayer::DrawCodeFile(FileHierarchy::TreeNode& node) {
     ImGui::PushID(i);
     auto line_number = i + 1;
     auto line_active = debugger.IsActiveLine(line_number);
-    ImGuiCustom::Breakpoint(i, node, *this, line_active); ImGui::SameLine();
+    ImGuiCustom::Breakpoint(i, node, *this, line_active && active_file); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
