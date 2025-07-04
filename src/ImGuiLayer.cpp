@@ -330,7 +330,7 @@ void ImGuiLayer::DrawBreakpointsWindow() {
     auto id = bp.GetID();
     auto& b_data = dctx.GetBreakpointData(id);
 
-    std::string label = fmt::format("{}: {}:{}", id, b_data.path.filename().c_str(), b_data.line_number);
+    std::string label = fmt::format("{}: {}:{}", id, b_data.path.filename().string(), b_data.line_number);
     if (ImGui::Selectable(label.c_str())) {
       Logger::Info("Navigate to breakpoint at {}", b_data.path.string());
         SwitchToCodeFile(b_data.path);
