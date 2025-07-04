@@ -251,16 +251,16 @@ void ImGuiLayer::DrawControlsWindow() {
     window_ref->GetDebuggerCtx().LaunchTarget();
   }
   if (ImGui::Button("Continue")) {
-    window_ref->GetDebuggerCtx().GetProcess().Continue();
+    window_ref->GetDebuggerCtx().Continue();
   }
   if (ImGui::Button("Step Into")) {
-    window_ref->GetDebuggerCtx().GetProcess().GetSelectedThread().StepInto();
+    window_ref->GetDebuggerCtx().StepInto();
   }
   if (ImGui::Button("Step Over")) {
-    window_ref->GetDebuggerCtx().GetProcess().GetSelectedThread().StepOver();
+    window_ref->GetDebuggerCtx().StepOver();
   }
   if (ImGui::Button("Next")) {
-    window_ref->GetDebuggerCtx().GetProcess().GetSelectedThread().StepOver(); // equivalent to next i guess
+    window_ref->GetDebuggerCtx().Next();
   }
   ImGui::End();
 }

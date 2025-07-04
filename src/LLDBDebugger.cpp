@@ -220,6 +220,47 @@ LLDBDebugger::BreakpointData& LLDBDebugger::GetBreakpointData(lldb::break_id_t i
   return it->second;
 }
 
+bool LLDBDebugger::CanRunCommand() {
+  if (process.IsValid() && process.GetState() == lldb::eStateStopped) {
+    lldb::SBThread thread = process.GetSelectedThread();
+    return thread.IsValid();
+  }
+  return false;
+}
+
+void LLDBDebugger::Continue() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Process cannot be continued...");
+    return;
+  }
+  process.Continue();
+}
+
+void LLDBDebugger::StepInto() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Process cannot be stepped into...");
+    return;
+  }
+  process.GetSelectedThread().StepInto();
+}
+
+void LLDBDebugger::StepOver() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Processed cannot be stepped over...");
+    return;
+  }
+  process.GetSelectedThread().StepOver();
+}
+
+void LLDBDebugger::Next() {
+  if (!CanRunCommand()) {
+    Logger::Warn("Process cannot be nexted...");
+    return;
+  }
+  StepOver();
+}
+
+
 LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, FileHierarchy& fh) {
   auto parsed_command = commandParser.Parse(command);
   switch (parsed_command.type) {
@@ -303,19 +344,19 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
       }
     case LLDB_CommandParser::ParsedCommandType::STEP:
       {
-        GetProcess().GetSelectedThread().StepInto();
+        StepInto();
         Logger::Info("Step");
         break;
       }
     case LLDB_CommandParser::ParsedCommandType::NEXT:
       {
-        GetProcess().GetSelectedThread().StepOver();
+        Next();
         Logger::Info("Next");
         break;
       }
     case LLDB_CommandParser::ParsedCommandType::CONTINUE:
       {
-        GetProcess().Continue();
+        Continue();
         Logger::Info("Continue");
         break;
       }
