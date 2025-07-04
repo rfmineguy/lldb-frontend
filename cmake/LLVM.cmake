@@ -22,29 +22,49 @@ message(STATUS "LLVM Include: ${LLVM_INCLUDE_DIR}")
 message(STATUS "LLVM Libs: ${LLVM_LIB_DIR}")
 
 if (NOT TARGET LLDB::liblldb)
+   # Candidate lists per platform
+    set(LLDB_STATIC_CANDIDATES)
+    set(LLDB_SHARED_CANDIDATES)
 
-    # Per-platform lib filename detection
     if (WIN32)
-        set(LLDB_LIB_STATIC "${LLVM_LIB_DIR}/liblldb.lib")
-        set(LLDB_LIB_SHARED "${LLVM_LIB_DIR}/liblldb.dll")
+        list(APPEND LLDB_STATIC_CANDIDATES "${LLVM_LIB_DIR}/liblldb.lib")
+        list(APPEND LLDB_SHARED_CANDIDATES "${LLVM_LIB_DIR}/liblldb.dll")
     elseif (APPLE)
-        set(LLDB_LIB_STATIC "${LLVM_LIB_DIR}/liblldb.a")
-        set(LLDB_LIB_SHARED "${LLVM_LIB_DIR}/liblldb.dylib")
+        list(APPEND LLDB_STATIC_CANDIDATES "${LLVM_LIB_DIR}/liblldb.a")
+        list(APPEND LLDB_SHARED_CANDIDATES "${LLVM_LIB_DIR}/liblldb.dylib")
     elseif (UNIX)
-        set(LLDB_LIB_STATIC "${LLVM_LIB_DIR}/liblldb.a")
-        set(LLDB_LIB_SHARED "${LLVM_LIB_DIR}/liblldb.so.1")
+        list(APPEND LLDB_STATIC_CANDIDATES "${LLVM_LIB_DIR}/liblldb.a")
+        list(APPEND LLDB_SHARED_CANDIDATES
+            "${LLVM_LIB_DIR}/liblldb.so"
+            "${LLVM_LIB_DIR}/liblldb.so.20.1.7"
+            "${LLVM_LIB_DIR}/liblldb.so.20.1"
+            "${LLVM_LIB_DIR}/liblldb.so.1"
+        )
     endif()
 
     set(LLDB_LIB_FILE "")
+    set(LLDB_LIB_TYPE "")
 
-    if (EXISTS "${LLDB_LIB_STATIC}")
-        set(LLDB_LIB_FILE "${LLDB_LIB_STATIC}")
-        set(LLDB_LIB_TYPE STATIC)
-    elseif (EXISTS "${LLDB_LIB_SHARED}")
-        set(LLDB_LIB_FILE "${LLDB_LIB_SHARED}")
-        set(LLDB_LIB_TYPE SHARED)
-    else()
-        message(FATAL_ERROR "Neither static nor shared LLDB library found in ${LLVM_LIB_DIR}")
+    foreach(CANDIDATE ${LLDB_STATIC_CANDIDATES})
+        if (EXISTS "${CANDIDATE}")
+            set(LLDB_LIB_FILE "${CANDIDATE}")
+            set(LLDB_LIB_TYPE STATIC)
+            break()
+        endif()
+    endforeach()
+
+    if (NOT LLDB_LIB_FILE)
+        foreach(CANDIDATE ${LLDB_SHARED_CANDIDATES})
+            if (EXISTS "${CANDIDATE}")
+                set(LLDB_LIB_FILE "${CANDIDATE}")
+                set(LLDB_LIB_TYPE SHARED)
+                break()
+            endif()
+        endforeach()
+    endif()
+
+    if (NOT LLDB_LIB_FILE)
+        message(FATAL_ERROR "No LLDB static or shared library found in ${LLVM_LIB_DIR}")
     endif()
 
     add_library(LLDB::liblldb ${LLDB_LIB_TYPE} IMPORTED GLOBAL)
