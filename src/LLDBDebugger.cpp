@@ -195,17 +195,17 @@ void LLDBDebugger::HitBreakpoint(lldb::break_id_t b_id) {
 
 void LLDBDebugger::SetActiveLine(BreakpointData data) {
   Logger::ScopedGroup g("SetActiveLine");
-  Logger::Info("file: {}, line: {}", data.filename, data.line_number);
+  Logger::Info("file: {}, line: {}", data.path.string(), data.line_number);
   active_line = data;
-  imGuiLayer_ptr->SwitchToCodeFile(active_line->filename);
+  imGuiLayer_ptr->SwitchToCodeFile(active_line->path);
 }
 
-bool LLDBDebugger::IsActiveFile(const std::string& filename) {
-  return active_line.has_value() && active_line->filename == filename;
+bool LLDBDebugger::IsActiveFile(const std::string& path) {
+  return active_line.has_value() && active_line->path == path;
 }
 
-std::string LLDBDebugger::GetActiveFile() const {
-  return active_line->filename;
+std::filesystem::path LLDBDebugger::GetActiveFile() const {
+  return active_line->path;
 }
 
 bool LLDBDebugger::IsActiveLine(int line_number) {

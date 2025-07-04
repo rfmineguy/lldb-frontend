@@ -22,7 +22,7 @@ class ImGuiLayer {
     LLDBDebugger& GetDebugger();
     FileHierarchy& GetFileHierarchy();
     void DrawFilesNotFoundModal();
-    void SwitchToCodeFile(const std::string&);
+    void SwitchToCodeFile(const std::filesystem::path&);
   
   protected:
     bool FrontendLoadFile(FileHierarchy::TreeNode&);

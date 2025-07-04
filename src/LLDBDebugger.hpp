@@ -36,7 +36,8 @@ class LLDBDebugger {
     };
     struct BreakpointData
     {
-      std::string filename;
+      std::filesystem::path path;
+      // std::string filename;
       int line_number;
     };
   public:
@@ -58,7 +59,7 @@ class LLDBDebugger {
   public:
     BreakpointData& GetBreakpointData(lldb::break_id_t id);
     bool IsActiveFile(const std::string& filename);
-    std::string GetActiveFile() const;
+    std::filesystem::path GetActiveFile() const;
     bool IsActiveLine(int line_number);
 
   public:

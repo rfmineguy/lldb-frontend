@@ -329,7 +329,12 @@ void ImGuiLayer::DrawBreakpointsWindow() {
     auto bp = target.GetBreakpointAtIndex(i);
     auto id = bp.GetID();
     auto& b_data = dctx.GetBreakpointData(id);
-    ImGui::Text("%d: %s:%d", id, b_data.filename.c_str(), b_data.line_number);
+
+    std::string label = fmt::format("{}: {}:{}", id, b_data.path.filename().c_str(), b_data.line_number);
+    if (ImGui::Selectable(label.c_str())) {
+      Logger::Info("Navigate to breakpoint at {}", b_data.path.string());
+        SwitchToCodeFile(b_data.path);
+    }
   }
   ImGui::End();
 }
@@ -429,14 +434,14 @@ bool ImGuiLayer::FrontendLoadFile(FileHierarchy::TreeNode& node) {
   }
 }
 
-void ImGuiLayer::SwitchToCodeFile(const std::string& path) {
+void ImGuiLayer::SwitchToCodeFile(const std::filesystem::path& path) {
   Logger::ScopedGroup x("Switch To Code File");
   for (auto& e : openFiles) {
-    Logger::Info("switch to path: {}, path: {}", path, e->path.string());
-    if (e->path.filename() == path) {
+    Logger::Info("switch to path: {}, path: {}", path.string(), e->path.string());
+    if (e->path.filename() == path.filename()) {
       e->LoadFromDisk();
       e->shouldSwitch = true;
-      Logger::Info("Switching to {}", path);
+      Logger::Info("Switching to {}", path.string());
       return;
     }
   }
