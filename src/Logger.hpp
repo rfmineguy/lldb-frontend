@@ -3,6 +3,7 @@
 #include <string>
 #include <stack>
 #include <iostream>
+#include <mutex>
 #include <fmt/core.h>
 
 #define LOG_SPACING 4
@@ -16,6 +17,7 @@ class Logger {
   private:
     static int log_depth;
     static std::stack<std::string> groupStack, lineStack;
+    static std::mutex mutex;
 
   public:
     static void BeginGroup(const std::string&);
@@ -29,6 +31,7 @@ class Logger {
     template<typename... Args>
     constexpr static void PrintlnLevel(const char* level, std::string_view fmt, Args&&... args)
     {
+      std::lock_guard lock(mutex);
       std::string formatted = fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...));
       fmt::print("{}[{}] {}", std::string(log_depth * LOG_SPACING, ' '), level, formatted);
       std::cout << std::endl;
@@ -37,6 +40,7 @@ class Logger {
     template<typename... Args>
     static void Println(std::string_view fmt, Args&&... args)
     {
+      std::lock_guard lock(mutex);
       std::string formatted = fmt::vformat(fmt, fmt::make_format_args(args...));
       std::cout << formatted << std::endl;
     }
