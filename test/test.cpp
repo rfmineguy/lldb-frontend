@@ -11,11 +11,11 @@ int main(int argc, const char **argv) {
   std::cout << "Hello world from test" << std::endl;
   std::cout << "Hello world from test" << std::endl;
 
+  Nested n;
+
   int x = 4;
   while (x > 0) {
     std::cout << "x: " << x << std::endl;
     x--;
   }
-
-  Nested n;
 }

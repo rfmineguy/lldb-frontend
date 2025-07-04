@@ -193,8 +193,19 @@ void LLDBDebugger::HitBreakpoint(lldb::break_id_t b_id) {
   active_line = b_data;
 }
 
+void LLDBDebugger::SetActiveLine(BreakpointData data) {
+  Logger::ScopedGroup g("SetActiveLine");
+  Logger::Info("file: {}, line: {}", data.filename, data.line_number);
+  active_line = data;
+  imGuiLayer_ptr->SwitchToCodeFile(active_line->filename);
+}
+
 bool LLDBDebugger::IsActiveFile(const std::string& filename) {
   return active_line.has_value() && active_line->filename == filename;
+}
+
+std::string LLDBDebugger::GetActiveFile() const {
+  return active_line->filename;
 }
 
 bool LLDBDebugger::IsActiveLine(int line_number) {
@@ -413,6 +424,9 @@ void LLDBDebugger::LLDBEventThread() {
                       if (line_entry.IsValid()) {
                           const SBFileSpec file_spec = line_entry.GetFileSpec();
                           Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
+                          std::string fullpath = std::string(file_spec.GetDirectory()) + "/" + std::string(file_spec.GetFilename());
+                          SetActiveLine({fullpath, (int)line_entry.GetLine()});
+                          imGuiLayer_ptr->SwitchToCodeFile(file_spec.GetFilename());
                       }
                   }
               }

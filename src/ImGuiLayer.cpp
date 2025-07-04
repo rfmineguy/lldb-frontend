@@ -204,7 +204,7 @@ void ImGuiLayer::DrawCodeFile(FileHierarchy::TreeNode& node) {
     ImGui::PushID(i);
     auto line_number = i + 1;
     auto line_active = debugger.IsActiveLine(line_number);
-    ImGuiCustom::Breakpoint(i, node, *this, line_active && active_file); ImGui::SameLine();
+    ImGuiCustom::Breakpoint(i, node, *this, line_active); ImGui::SameLine();
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
@@ -227,7 +227,10 @@ void ImGuiLayer::DrawCodeWindow() {
   if (ImGui::BeginTabBar("Code File Tabs", tab_bar_flags)) {
     for (auto& file : openFiles) {
       auto local_path_string = file->name;
-      if (ImGui::BeginTabItem(local_path_string.c_str())) {
+      ImGuiTabItemFlags tab_item_flags = file->shouldSwitch ? ImGuiTabItemFlags_SetSelected : ImGuiTabItemFlags_None;
+      if (file->shouldSwitch) Logger::Info("Switching to file: {}", file->path.string());
+      file->shouldSwitch = false;
+      if (ImGui::BeginTabItem(local_path_string.c_str(), nullptr, tab_item_flags)) {
         DrawCodeFile(*file);
         ImGui::EndTabItem();
       }
@@ -425,3 +428,22 @@ bool ImGuiLayer::FrontendLoadFile(FileHierarchy::TreeNode& node) {
     return false;
   }
 }
+
+void ImGuiLayer::SwitchToCodeFile(const std::string& path) {
+  Logger::ScopedGroup x("Switch To Code File");
+  for (auto& e : openFiles) {
+    Logger::Info("switch to path: {}, path: {}", path, e->path.string());
+    if (e->path.filename() == path) {
+      e->LoadFromDisk();
+      e->shouldSwitch = true;
+      Logger::Info("Switching to {}", path);
+      return;
+    }
+  }
+  // ImGuiID tab_bar_id = ImGui::GetID("#code-files-tab");
+  // ImGuiID tab_id = ImGui::GetID(path.c_str());
+  // ImGuiContext& g = *ImGui::GetCurrentContext();
+  // ImGuiTabBar* tb = g.TabBars.GetByKey(tab_bar_id);
+  // tb->NextSelectedTabId = tab_id;
+}
+
