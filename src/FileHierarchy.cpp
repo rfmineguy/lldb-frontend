@@ -13,28 +13,27 @@
 #endif
 
 std::filesystem::path FileHierarchy::TreeNode::GetPath() const {
-  static std::string path_sep_string(1, char(std::filesystem::path::preferred_separator));
   std::string path_string(name);
   auto current_parent_node = parent_node;
   while (current_parent_node) {
 #if defined(_WIN32)
-    if (!(current_parent_node->name.empty() || current_parent_node->name == path_sep_string)) {
+    if (!(current_parent_node->name.empty() || current_parent_node->name == Util::PathSeparator)) {
 #else
-    if (!(current_parent_node->name == path_sep_string)) {
+    if (!(current_parent_node->name == Util::PathSeparator)) {
 #endif
-      if (path_string != path_sep_string)
-        path_string.insert(path_string.begin(), path_sep_string.begin(), path_sep_string.end());
+      if (path_string != Util::PathSeparator)
+        path_string.insert(path_string.begin(), Util::PathSeparator.begin(), Util::PathSeparator.end());
       path_string.insert(path_string.begin(), current_parent_node->name.begin(), current_parent_node->name.end());
     }
     current_parent_node = current_parent_node->parent_node;
   }
   if (GetOSPathType(std::filesystem::path(path_string)) == FileHierarchy::TreeNodeType::FOLDER) {
-    if (path_string[path_string.size() - 1] != path_sep_string[0]) {
-      path_string += path_sep_string;
+    if (path_string[path_string.size() - 1] != Util::PathSeparator[0]) {
+      path_string += Util::PathSeparator;
     }
   }
   else if (!children.empty())
-    path_string += path_sep_string;
+    path_string += Util::PathSeparator;
   return std::filesystem::path(path_string);
 }
 

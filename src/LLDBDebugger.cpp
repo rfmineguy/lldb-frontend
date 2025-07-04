@@ -465,7 +465,7 @@ void LLDBDebugger::LLDBEventThread() {
                       if (line_entry.IsValid()) {
                           const SBFileSpec file_spec = line_entry.GetFileSpec();
                           Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
-                          std::string fullpath = std::string(file_spec.GetDirectory()) + "/" + std::string(file_spec.GetFilename());
+                          std::string fullpath = std::string(file_spec.GetDirectory()) + Util::PathSeparator + std::string(file_spec.GetFilename());
                           SetActiveLine({fullpath, (int)line_entry.GetLine()});
                           imGuiLayer_ptr->SwitchToCodeFile(file_spec.GetFilename());
                       }
