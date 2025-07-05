@@ -1,4 +1,5 @@
 #include "Includes.cpp"
 #include "ImGuiCustomWidgets.hpp"
 #include "ImGuiLayer.hpp"
+#include "Styling.hpp"
 #include "main.cpp"

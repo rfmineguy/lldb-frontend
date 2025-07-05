@@ -1,4 +1,5 @@
 #include "Init.hpp"
+#include "Styling.hpp"
 #include "Logger.hpp"
 #include "Util.hpp"
 #include <iostream>
@@ -50,7 +51,8 @@ namespace lldb_frontend {
   void Init::InitImGui(const Window& window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGui::StyleColorsDark();
+    lldb_frontend::Styling::Init();
+    // ImGui::StyleColorsDark();
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = m_IniFilename.c_str();;
     ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)window.GetWindowHandle(), true);

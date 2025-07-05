@@ -13,6 +13,7 @@
 #include "Util.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
+#include "Styling.hpp"
 
 ImGuiLayer::ImGuiLayer(LLDBDebugger& debugger):
   debugger(debugger)
@@ -197,6 +198,8 @@ void ImGuiLayer::DrawDebugWindow() {
 }
 
 void ImGuiLayer::DrawCodeFile(FileHierarchy::TreeNode& node) {
+  using namespace lldb_frontend;
+  const auto& lldbStyle = Styling::GetStyle();
   auto node_path_string = node.path.string();
   bool active_file = debugger.IsActiveFile(node_path_string.c_str());
   if (node.lines->empty()) return;
@@ -209,13 +212,13 @@ void ImGuiLayer::DrawCodeFile(FileHierarchy::TreeNode& node) {
     ImVec2 cursor = ImGui::GetCursorScreenPos();
     ImVec2 text_size = ImGui::CalcTextSize(line.line.c_str());
     ImVec2 line_size = ImVec2(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x * 1.75, text_size.y * 1.5);
-    auto line_bg_color = i % 2 == 0 ? ImGui::GetColorU32(ImGuiCol_Button) : ImGui::GetColorU32(ImGuiCol_ButtonHovered);
+    auto line_bg_color = i % 2 == 0 ? lldbStyle.Colors[Styling::LLDBFrontendCol_EvenLine] : lldbStyle.Colors[Styling::LLDBFrontendCol_OddLine];
     if (active_file && line_active)
-      line_bg_color = IM_COL32(248, 42, 128, 255);
+      line_bg_color = lldbStyle.Colors[Styling::LLDBFrontendCol_BreakpointLineActive];
     ImGui::GetWindowDrawList()->AddRectFilled(
         cursor,
         cursor + line_size,
-        line_bg_color,
+        ImGui::GetColorU32(line_bg_color),
         0.f);
     ImGui::Text("[%d] | %s", i, line.line.c_str());
     ImGui::PopID();
