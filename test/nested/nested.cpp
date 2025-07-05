@@ -1,7 +1,13 @@
 #include "nested.hpp"
 #include <iostream>
 
-Nested::Nested() {
+Nested::Nested()
+:value(5), s("affsd") {
+  std::cout << "Nested constructed" << std::endl;
+}
+
+Nested::Nested(int value, const std::string& s)
+  :value(value), s(s) {
   std::cout << "Nested constructed" << std::endl;
 }
 

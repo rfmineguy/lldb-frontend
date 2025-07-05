@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 #include "nested/nested.hpp"
 
 void testFunction() {
@@ -12,10 +13,17 @@ int main(int argc, const char **argv) {
   std::cout << "Hello world from test" << std::endl;
 
   Nested n;
+  Nested n2(9, "something else");
+
+  std::thread thread([&] {
+    std::cout << "I am in a thread!!" << std::endl; 
+  });
 
   int x = 4;
   while (x > 0) {
     std::cout << "x: " << x << std::endl;
     x--;
   }
+
+  if (thread.joinable()) thread.join();
 }

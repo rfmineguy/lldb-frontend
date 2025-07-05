@@ -33,7 +33,8 @@ class ImGuiLayer {
   private:
     void DrawDebugWindow();
     void DrawCodeWindow();
-    void DrawStackTraceWindow();
+    void DrawThreadWindow();
+    void DrawLocalsWindow();
     void DrawControlsWindow();
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
@@ -44,6 +45,7 @@ class ImGuiLayer {
 
   private:
     void DrawCodeFile(FileHierarchy::TreeNode&);
+    void DrawLocal(lldb::SBValue&, const std::string& = "");
 
   private:
     static int TextEditCallbackStub(ImGuiInputTextCallbackData* data);
