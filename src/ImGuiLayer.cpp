@@ -88,6 +88,7 @@ void ImGuiLayer::Draw() {
   DrawControlsWindow();
   DrawBreakpointsWindow();
   DrawLLDBCommandWindow();
+  DrawLocalsWindow();
 }
 
 LLDBDebugger& ImGuiLayer::GetDebugger()
@@ -259,6 +260,44 @@ void ImGuiLayer::DrawThreadWindow() {
   }
   ImGui::End();
 }
+
+void ImGuiLayer::DrawLocal(lldb::SBValue& val, const std::string& prefix) {
+  const char* name = val.GetName();
+  const char* value = val.GetValue();
+  const char* summary = val.GetSummary();
+  const char* type = val.GetTypeName();
+
+  std::string label = prefix;
+  if (name) label += name;
+
+  std::string val_str;
+  if (value) val_str = value;
+  else if (summary) val_str = summary;
+  else val_str = "<no value>";
+
+  std::string fmt = fmt::format("{} ({}) = {}", label, type ? type : "?", val_str);
+  ImGuiTreeNodeFlags flags = val.GetNumChildren() == 0 ? ImGuiTreeNodeFlags_Leaf : ImGuiTreeNodeFlags_None;
+  if (ImGui::TreeNodeEx(fmt.c_str(), flags)) {
+    for (uint32_t i = 0; i < val.GetNumChildren(); ++i) {
+      auto child = val.GetChildAtIndex(i);
+      if (child.IsValid()) {
+        DrawLocal(child, label + ".");
+      }
+    }
+    ImGui::TreePop();
+  }
+}
+
+void ImGuiLayer::DrawLocalsWindow() {
+  ImGui::Begin("Locals");
+  auto currentThread = debugger.GetProcess().GetSelectedThread();
+  auto currentFrame = currentThread.GetSelectedFrame();
+  auto block = currentFrame.GetFrameBlock();
+  auto variables = block.GetVariables(currentFrame, false, true, false, lldb::DynamicValueType::eNoDynamicValues);
+  for (int i = 0; i < variables.GetSize(); i++) {
+    auto var = variables.GetValueAtIndex(i);
+    DrawLocal(var);
+  }
   ImGui::End();
 }
 
