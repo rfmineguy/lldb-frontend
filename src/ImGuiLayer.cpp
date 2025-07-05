@@ -119,10 +119,10 @@ void ImGuiLayer::DrawDebugWindow() {
   // Open File Dialog
   if (ImGui::Button("Open File Dialog")) {
     const char* fdpath = tinyfd_openFileDialog("Choose File", "", 0, NULL, "executables", 0);
-    std::filesystem::path path(fdpath);
     if (fdpath) {
+      std::filesystem::path path(fdpath);
       Logger::ScopedGroup g("OpenFileDialog");
-      Logger::Info("Path: {}", fdpath);
+      Logger::Info("Path: {}", path.string());
 
       auto& dctx = window_ref->GetDebuggerCtx();
 
