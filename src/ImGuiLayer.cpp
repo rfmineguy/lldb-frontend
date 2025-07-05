@@ -84,7 +84,7 @@ void ImGuiLayer::Draw() {
   DrawDebugWindow();
   DrawCodeWindow();
   DrawFileBrowser();
-  DrawStackTraceWindow();
+  DrawThreadWindow();
   DrawControlsWindow();
   DrawBreakpointsWindow();
   DrawLLDBCommandWindow();
@@ -240,8 +240,25 @@ void ImGuiLayer::DrawCodeWindow() {
   ImGui::End();
 }
 
-void ImGuiLayer::DrawStackTraceWindow() {
-  ImGui::Begin("Stack Trace");
+void ImGuiLayer::DrawThreadWindow() {
+  ImGui::Begin("Threads");
+  for (int i = 0; i < debugger.GetProcess().GetNumThreads(); i++) {
+    auto thread = debugger.GetProcess().GetThreadAtIndex(i);
+    if (thread.IsValid()) {
+      std::string formatted = fmt::format("{}", thread.GetIndexID());
+      if (ImGui::TreeNodeEx(formatted.c_str())) {
+        for (int i = 0; i < thread.GetNumFrames(); i++) {
+          auto frame = thread.GetFrameAtIndex(i);
+          if (frame.IsValid()) {
+            ImGui::Text("%d | %s", frame.GetFrameID(), frame.GetDisplayFunctionName());
+          }
+        }
+        ImGui::TreePop();
+      }
+    }
+  }
+  ImGui::End();
+}
   ImGui::End();
 }
 

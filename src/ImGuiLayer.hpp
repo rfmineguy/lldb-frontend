@@ -33,7 +33,7 @@ class ImGuiLayer {
   private:
     void DrawDebugWindow();
     void DrawCodeWindow();
-    void DrawStackTraceWindow();
+    void DrawThreadWindow();
     void DrawControlsWindow();
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
