@@ -15,7 +15,8 @@ namespace lldb_frontend {
     };
 
     static LLDBStyle lldbStyle;
-    void Init();
+    bool InitTheme(const std::string&);
+
     LLDBStyle& GetStyle();
   }
 }

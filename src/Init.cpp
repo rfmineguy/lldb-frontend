@@ -51,7 +51,7 @@ namespace lldb_frontend {
   void Init::InitImGui(const Window& window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    lldb_frontend::Styling::Init();
+    assert(lldb_frontend::Styling::InitTheme("Light"));
     // ImGui::StyleColorsDark();
     ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = m_IniFilename.c_str();;

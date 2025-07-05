@@ -5,7 +5,24 @@ namespace lldb_frontend {
   Styling::LLDBStyle lldbStyle = Styling::LLDBStyle{};
 
   namespace Styling {
-    void Init() {
+
+    void DarkInit();
+    void LightInit();
+
+    std::unordered_map<std::string, std::function<void()>> theme_init_fns = {
+      { "Dark", DarkInit },
+      { "Light", LightInit }
+    };
+
+    bool InitTheme(const std::string& theme) {
+      auto it = theme_init_fns.find(theme);
+      if (it == theme_init_fns.end())
+        return false;
+      it->second();
+      return true;
+    }
+
+    void DarkInit() {
       ImGuiStyle& style = ImGui::GetStyle();
       ImVec4* colors = style.Colors;
 
@@ -74,6 +91,19 @@ namespace lldb_frontend {
       lldbStyle.Colors[LLDBFrontendCol_OddLine]  = colors[ImGuiCol_TabUnfocused];
       lldbStyle.Colors[LLDBFrontendCol_BreakpointLineActive] = ImVec4(0.35f, 0.10f, 0.10f, 1.0f);
     }
+
+    void LightInit() {
+      ImGui::StyleColorsLight();
+      
+      ImGuiStyle& style = ImGui::GetStyle();
+      ImVec4* colors = style.Colors;
+
+      LLDBStyle& lldbStyle = GetStyle();
+      lldbStyle.Colors[LLDBFrontendCol_EvenLine] = colors[ImGuiCol_Tab];
+      lldbStyle.Colors[LLDBFrontendCol_OddLine]  = colors[ImGuiCol_TabUnfocused];
+      lldbStyle.Colors[LLDBFrontendCol_BreakpointLineActive] = ImVec4(0.35f, 0.10f, 0.10f, 1.0f);
+    }
+
     LLDBStyle& GetStyle() {
       return lldbStyle;
     }
