@@ -14,7 +14,7 @@ struct FileContext;
 class ImGuiLayer;
 
 class LLDBDebugger {
-  friend Window;
+  friend class Window;
   public:
     enum class ExecResultStatus {
       Ok,

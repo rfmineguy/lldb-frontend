@@ -6,6 +6,12 @@
 
 struct Line;
 namespace Util {
+  enum class SystemTheme {
+    DARK, LIGHT,
+  };
+
+  std::string SystemThemeToString(SystemTheme theme);
+
   void PrintTargetModules(lldb::SBTarget& target);
   void PrintModuleCompileUnits(lldb::SBTarget& target, int moduleIdx);
   std::filesystem::path GetCurrentProgramDirectory();
@@ -14,6 +20,8 @@ namespace Util {
 
   bool ReadFileLinesIntoVector(const std::filesystem::path& filepath, std::vector<Line>& lines);
   inline static std::string PathSeparator = std::string(1, char(std::filesystem::path::preferred_separator));
+
+  SystemTheme GetSystemTheme();
 }
 
 #endif

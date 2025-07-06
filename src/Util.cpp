@@ -13,6 +13,13 @@
 
 struct Line;
 namespace Util {
+  std::string SystemThemeToString(SystemTheme theme) {
+    switch (theme) {
+      case Util::SystemTheme::DARK: return "Dark";
+      case Util::SystemTheme::LIGHT: return "Light";
+    }
+  }
+
   void PrintTargetModules(lldb::SBTarget& target) {
     Logger::ScopedGroup g("PrintTargetModules");
     for (int i = 0; i < target.GetNumModules(); i++) {
@@ -173,5 +180,64 @@ namespace Util {
     }
     f.close();
     return true;
+  }
+
+  SystemTheme GetSystemTheme() {
+#if defined(_WIN32)
+    // Windows 10/11 via registry
+    HKEY hKey;
+    DWORD value = 1;
+    DWORD dataSize = sizeof(value);
+    if (RegOpenKeyExA(HKEY_CURRENT_USER,
+                      "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+                      0,
+                      KEY_READ,
+                      &hKey) == ERROR_SUCCESS)
+    {
+        if (RegQueryValueExA(hKey, "AppsUseLightTheme", nullptr, nullptr, (LPBYTE)&value, &dataSize) == ERROR_SUCCESS)
+        {
+            RegCloseKey(hKey);
+            return value == 0 ? SystemTheme::DARK : SystemTheme::LIGHT; // 0 = dark, 1 = light
+        }
+        RegCloseKey(hKey);
+    }
+    return SystemTheme::LIGHT;
+
+#elif defined(__APPLE__)
+    // macOS via Apple Interface Style
+    FILE* pipe = popen("defaults read -g AppleInterfaceStyle 2>/dev/null", "r");
+    if (!pipe)
+        return SystemTheme::LIGHT;
+    char buffer[128];
+    std::string result = "";
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+    {
+        result += buffer;
+    }
+    pclose(pipe);
+    for (auto& c : result)
+        c = std::tolower(c);
+    Logger::Info("Result: {}", result);
+    return (result.find("dark") != std::string::npos) ? SystemTheme::DARK : SystemTheme::LIGHT;
+
+#elif defined(__linux__)
+    // Linux: try GSettings (GNOME-based)
+    FILE* pipe = popen("gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null", "r");
+    if (!pipe)
+        return SystemTheme::LIGHT;
+    char buffer[128];
+    std::string result = "";
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
+    {
+        result += buffer;
+    }
+    pclose(pipe);
+    for (auto& c : result)
+        c = std::tolower(c);
+    return (result.find("dark") != std::string::npos) ? SystemTheme::DARK : SystemTheme::LIGHT;
+
+#else
+    return SystemTheme::LIGHT; // unsupported platform
+#endif
   }
 }
