@@ -15,7 +15,7 @@
 
 struct TempRedirect
 {
-    std::string path;
+    std::filesystem::path path;
     int fd = -1;
     FILE *file = nullptr;
 

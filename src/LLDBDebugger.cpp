@@ -73,14 +73,18 @@ void LLDBDebugger::LaunchTarget() {
   const char **argv = nullptr; // or fill if you need
   const char **envp = nullptr;
 
+  auto in_string = in_redirect.path.string();
+  auto err_string = err_redirect.path.string();
+  auto out_string = out_redirect.path.string();
+
   auto exe_path_string_esc = Util::StringEscapeBackslash(exe_path_string);
   process = target.Launch(
     listener,
     argv,
     envp,
-    in_redirect.path.c_str(),
-    out_redirect.path.c_str(),
-    err_redirect.path.c_str(),
+    in_string.c_str(),
+    err_string.c_str(),
+    out_string.c_str(),
     workdir,
     0,
     false,
@@ -389,6 +393,7 @@ void LLDBDebugger::DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& 
 
     while (fgets(buffer, buffer_size, redirect.file) != nullptr)
     {
+        imGuiLayer_ptr->PushIOLine(std::string(buffer));
         out << buffer;
     }
 
