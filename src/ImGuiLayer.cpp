@@ -89,6 +89,7 @@ void ImGuiLayer::Draw() {
   DrawControlsWindow();
   DrawBreakpointsWindow();
   DrawLLDBCommandWindow();
+  DrawProcessIOWindow();
   DrawLocalsWindow();
 }
 
@@ -433,6 +434,25 @@ void ImGuiLayer::DrawLLDBCommandWindow() {
       reclaim_focus = true;
   }
 
+  ImGui::End();
+}
+
+void ImGuiLayer::DrawProcessIOWindow() {
+  ImGui::Begin("Process IO");
+  static char inputBuf[256];
+  static ImVector<std::string> items;
+
+  const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+  if (ImGui::BeginChild("ScrollingRegionIO", ImVec2(0, -footer_height_to_reserve), ImGuiChildFlags_NavFlattened, ImGuiWindowFlags_HorizontalScrollbar)) {
+    for (const auto& line : processIOWindowItems) {
+      ImGui::Text("%s", line.c_str());
+    }
+  }
+  ImGui::EndChild();
+
+  // Input field
+  if (ImGui::InputText("Input", inputBuf, 256)) {
+  }
 
   ImGui::End();
 }
@@ -477,6 +497,11 @@ void ImGuiLayer::DrawFilesNotFoundModal()
         ImGui::EndPopup();
     }
   }
+}
+
+void ImGuiLayer::PushIOLine(const std::string& line) {
+  std::lock_guard lock(processIOMutex);
+  processIOWindowItems.push_back(line);
 }
 
 bool ImGuiLayer::FrontendLoadFile(FileHierarchy::TreeNode& node) {

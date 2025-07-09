@@ -73,14 +73,18 @@ void LLDBDebugger::LaunchTarget() {
   const char **argv = nullptr; // or fill if you need
   const char **envp = nullptr;
 
+  auto in_string = in_redirect.path.string();
+  auto err_string = err_redirect.path.string();
+  auto out_string = out_redirect.path.string();
+
   auto exe_path_string_esc = Util::StringEscapeBackslash(exe_path_string);
   process = target.Launch(
     listener,
     argv,
     envp,
-    in_redirect.path.c_str(),
-    out_redirect.path.c_str(),
-    err_redirect.path.c_str(),
+    in_string.c_str(),
+    err_string.c_str(),
+    out_string.c_str(),
     workdir,
     0,
     false,
@@ -389,7 +393,8 @@ void LLDBDebugger::DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& 
 
     while (fgets(buffer, buffer_size, redirect.file) != nullptr)
     {
-        out << buffer;
+      imGuiLayer_ptr->PushIOLine(std::string(buffer));
+      out << buffer;
     }
 
     offset = ftell(redirect.file);
@@ -476,10 +481,11 @@ void LLDBDebugger::LLDBEventThread() {
               }
               break;
           }
-          case eStateExited:
+          case eStateExited: {
             Logger::Info("Target exited");
             running = false;
-            break;
+            goto exit;
+          }
           case eStateRunning:
             active_line.reset();
             Logger::Info("Target running");
@@ -517,7 +523,12 @@ void LLDBDebugger::LLDBEventThread() {
       }
     }
   }
+exit:
   DumpToStd(out_redirect, std::cout, out_offset);
   DumpToStd(err_redirect, std::cerr, err_offset);
+  int exitCode = process.GetExitStatus();
+  const char* exitReason = process.GetExitDescription() ? process.GetExitDescription() : "none";
+  std::string fmt = fmt::format("Process exitted [code={}, reason={}]", exitCode, exitReason);
+  imGuiLayer_ptr->PushIOLine(fmt);
   Logger::Info("LLDB Event Thread Stopping");
 }

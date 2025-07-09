@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <queue>
+#include <mutex>
 struct Window;
 struct ImGuiInputTextCallbackData;
 class LLDBDebugger;
@@ -23,6 +24,7 @@ class ImGuiLayer {
     FileHierarchy& GetFileHierarchy();
     void DrawFilesNotFoundModal();
     void SwitchToCodeFile(const std::filesystem::path&);
+    void PushIOLine(const std::string&);
   
   protected:
     bool FrontendLoadFile(FileHierarchy::TreeNode&);
@@ -38,6 +40,7 @@ class ImGuiLayer {
     void DrawControlsWindow();
     void DrawBreakpointsWindow();
     void DrawLLDBCommandWindow();
+    void DrawProcessIOWindow();
 
     bool ShowHierarchyItem(FileHierarchy::TreeNode&, const std::filesystem::path&, const std::filesystem::path&);
     void FileHierarchyRecursive(const std::filesystem::path&, FileHierarchy::TreeNode&);
@@ -57,6 +60,10 @@ class ImGuiLayer {
     std::vector<FileHierarchy::TreeNode*> openFiles;
     bool m_FilesNotFoundModal_open = false;
     std::vector<const FileHierarchy::TreeNode*> m_FilesNotFoundModal_files;
+
+  private:
+    std::vector<std::string> processIOWindowItems;
+    std::mutex processIOMutex;
 };
 
 #endif
