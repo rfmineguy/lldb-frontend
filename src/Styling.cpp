@@ -1,11 +1,45 @@
 #include "Styling.hpp"
+#include "Util.hpp"
+#include "Logger.hpp"
+#include "ThemeListener.hpp"
 #include <imgui.h>
+#include <unordered_map>
+#include <functional>
 
 namespace lldb_frontend {
   Styling::LLDBStyle lldbStyle = Styling::LLDBStyle{};
 
   namespace Styling {
-    void Init() {
+
+    void DarkInit();
+    void LightInit();
+
+    std::unordered_map<std::string, std::function<void()>> theme_init_fns = {
+      { "Dark", DarkInit },
+      { "Light", LightInit }
+    };
+
+    void ThemeChangeListener() {
+      auto systheme = Util::GetSystemTheme();
+      Logger::Info("Theme changed: {}", Util::SystemThemeToString(systheme));
+      auto it = theme_init_fns.find(Util::SystemThemeToString(systheme));
+      if (it == theme_init_fns.end())
+        return;
+      it->second();
+    }
+
+    bool InitTheme() {
+      RegisterThemeChangeObserver(ThemeChangeListener);
+      auto systheme = Util::GetSystemTheme();
+      Logger::Info("Theme changed: {}", Util::SystemThemeToString(systheme));
+      auto it = theme_init_fns.find(Util::SystemThemeToString(systheme));
+      if (it == theme_init_fns.end())
+        return false;
+      it->second();
+      return true;
+    }
+
+    void DarkInit() {
       ImGuiStyle& style = ImGui::GetStyle();
       ImVec4* colors = style.Colors;
 
@@ -73,7 +107,22 @@ namespace lldb_frontend {
       lldbStyle.Colors[LLDBFrontendCol_EvenLine] = colors[ImGuiCol_Tab];
       lldbStyle.Colors[LLDBFrontendCol_OddLine]  = colors[ImGuiCol_TabUnfocused];
       lldbStyle.Colors[LLDBFrontendCol_BreakpointLineActive] = ImVec4(0.35f, 0.10f, 0.10f, 1.0f);
+      Logger::Info("Inialized dark theme");
     }
+
+    void LightInit() {
+      ImGui::StyleColorsLight();
+      
+      ImGuiStyle& style = ImGui::GetStyle();
+      ImVec4* colors = style.Colors;
+
+      LLDBStyle& lldbStyle = GetStyle();
+      lldbStyle.Colors[LLDBFrontendCol_EvenLine] = colors[ImGuiCol_Tab];
+      lldbStyle.Colors[LLDBFrontendCol_OddLine]  = colors[ImGuiCol_TabUnfocused];
+      lldbStyle.Colors[LLDBFrontendCol_BreakpointLineActive] = ImVec4(0.35f, 0.10f, 0.10f, 1.0f);
+      Logger::Info("Init light theme");
+    }
+
     LLDBStyle& GetStyle() {
       return lldbStyle;
     }

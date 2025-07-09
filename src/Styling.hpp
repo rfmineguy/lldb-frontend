@@ -1,6 +1,7 @@
 #ifndef IMGUI_STYLING_HPP
 #define IMGUI_STYLING_HPP
 #include <imgui.h>
+#include <string>
 
 namespace lldb_frontend {
   namespace Styling {
@@ -15,7 +16,8 @@ namespace lldb_frontend {
     };
 
     static LLDBStyle lldbStyle;
-    void Init();
+    bool InitTheme();
+
     LLDBStyle& GetStyle();
   }
 }

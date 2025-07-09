@@ -43,7 +43,15 @@ include(cmake/LLVM.cmake)
 
 # lldbfrontend [LIBRARY]
 
-add_library(lldbfrontend src/liblldbfrontend.cpp)
+set(LIB_LLDBFRONTEND_SOURCES src/liblldbfrontend.cpp)
+if (NOT IOS AND APPLE)
+  list(APPEND LIB_LLDBFRONTEND_SOURCES src/MacOS_ThemeListener.mm)
+elseif (WIN32)
+  list(APPEND LIB_LLDBFRONTEND_SOURCES src/Windows_ThemeListener.cpp)
+elseif (UNIX)
+  list(APPEND LIB_LLDBFRONTEND_SOURCES src/Linux_ThemeListener.cpp)
+endif()
+add_library(lldbfrontend ${LIB_LLDBFRONTEND_SOURCES})
 
 target_compile_features(lldbfrontend PRIVATE cxx_std_23)
 
