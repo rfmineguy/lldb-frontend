@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <queue>
+#include <mutex>
 struct Window;
 struct ImGuiInputTextCallbackData;
 class LLDBDebugger;
@@ -62,6 +63,7 @@ class ImGuiLayer {
 
   private:
     std::vector<std::string> processIOWindowItems;
+    std::mutex processIOMutex;
 };
 
 #endif

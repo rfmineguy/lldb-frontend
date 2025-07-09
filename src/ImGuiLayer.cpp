@@ -500,6 +500,7 @@ void ImGuiLayer::DrawFilesNotFoundModal()
 }
 
 void ImGuiLayer::PushIOLine(const std::string& line) {
+  std::lock_guard lock(processIOMutex);
   processIOWindowItems.push_back(line);
 }
 
