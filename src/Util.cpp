@@ -240,4 +240,16 @@ namespace Util {
     return SystemTheme::LIGHT; // unsupported platform
 #endif
   }
+
+  std::vector<std::string> ConvertArgsToArgv(std::vector<std::string>& args) {
+    std::vector<std::string> converted;
+    for (auto& arg : args) {
+      size_t loc = arg.find(' ');
+      if (loc != std::string::npos) {
+        converted.push_back(arg.substr(0, loc));
+        converted.push_back(arg.substr(loc + 1));
+      }
+    }
+    return converted;
+  }
 }
