@@ -4,6 +4,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <tinyfiledialogs.h>
@@ -305,11 +306,47 @@ void ImGuiLayer::DrawLocalsWindow() {
   ImGui::End();
 }
 
+void ImGuiLayer::DrawRunButton() {
+  std::array<char, 100> executable_path;
+  static std::vector<std::string> args;
+  static int delete_index = -1;
+  if (ImGui::Button("Run")) {
+    auto argsConverted = Util::ConvertArgsToArgv(args);
+    for (const auto& s : argsConverted) {
+      Logger::Info("{}", s.data());
+    }
+    window_ref->GetDebuggerCtx().LaunchTarget(args);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Right click for args");
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+      ImGui::OpenPopup("Run Args");
+    }
+  }
+  if (ImGui::BeginPopup("Run Args")) {
+    ImGui::InputText("executable", executable_path.data(), executable_path.size());
+    for (int i = 0; i < args.size(); i++) {
+      ImGui::PushID(i);
+      ImGui::InputText("", &args.at(i));
+      ImGui::SameLine();
+      if (ImGui::Button("-")) {
+        delete_index = i;
+      }
+      ImGui::PopID();
+    }
+    if (delete_index != -1) {
+      args.erase(args.begin() + delete_index);
+      delete_index = -1;
+    }
+
+    if (ImGui::Button("+")) args.push_back(std::string());
+    ImGui::EndPopup();
+  }
+}
+
 void ImGuiLayer::DrawControlsWindow() {
   ImGui::Begin("Controls");
-  if (ImGui::Button("Run")) {
-    window_ref->GetDebuggerCtx().LaunchTarget();
-  }
+  DrawRunButton();
   if (ImGui::Button("Continue")) {
     window_ref->GetDebuggerCtx().Continue();
   }
