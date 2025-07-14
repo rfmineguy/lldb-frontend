@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <cstring>
 
-LLDBDebugger::LLDBDebugger() {
+LLDBDebugger::LLDBDebugger(): eventCallback(nullptr) {
     lldb::SBDebugger::Initialize();
     debugger = lldb::SBDebugger::Create();
     debugger.SetAsync(true);
@@ -30,6 +30,10 @@ LLDBDebugger::~LLDBDebugger() {
   lldb::SBDebugger::Terminate();
   if (lldbEventThread.joinable())
     lldbEventThread.join();
+}
+
+void LLDBDebugger::SetEventCallback(std::function<void(const Event&)> _eventCallback) {
+  eventCallback = _eventCallback;
 }
 
 void LLDBDebugger::LaunchTarget() {
@@ -204,7 +208,7 @@ void LLDBDebugger::SetActiveLine(BreakpointData data) {
   Logger::ScopedGroup g("SetActiveLine");
   Logger::Info("file: {}, line: {}", data.path.string(), data.line_number);
   active_line = data;
-  imGuiLayer_ptr->SwitchToCodeFile(active_line->path);
+  eventCallback(Event{.data = Event::SwitchToFile(active_line->path)});
 }
 
 bool LLDBDebugger::IsActiveFile(const std::string& path) {
@@ -282,7 +286,7 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
           Logger::Err("File '{}' does not exist in target", bpfileline.file);
         }
         else {
-          imGuiLayer_ptr->FrontendLoadFile(*node);
+          eventCallback(Event{.data = Event::LoadFile{.node = node}});
           if (AddBreakpoint(*node, bpfileline.line)) {
             Logger::Info("Breakpoint in file '{}' line {}", bpfileline.file, bpfileline.line);
           }
@@ -329,7 +333,7 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
 
           auto path = std::filesystem::path(fs.GetDirectory()) / fs.GetFilename();
           if (auto node = fh.GetElementByLocalPath(path)) {
-            imGuiLayer_ptr->FrontendLoadFile(*node);
+            eventCallback(Event{.data = Event::LoadFile{.node = node}});
             if (AddBreakpoint(*node, lineno)) {
               Logger::Info("Break on symbol {} in {}", bpsymbol.symbol, fs.GetFilename());
             }
@@ -393,7 +397,7 @@ void LLDBDebugger::DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& 
 
     while (fgets(buffer, buffer_size, redirect.file) != nullptr)
     {
-      imGuiLayer_ptr->PushIOLine(std::string(buffer));
+      eventCallback(Event{.data = Event::IO(std::string(buffer))});
       out << buffer;
     }
 
@@ -475,7 +479,7 @@ void LLDBDebugger::LLDBEventThread() {
                           Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
                           std::string fullpath = std::string(file_spec.GetDirectory()) + Util::PathSeparator + std::string(file_spec.GetFilename());
                           SetActiveLine({fullpath, (int)line_entry.GetLine()});
-                          imGuiLayer_ptr->SwitchToCodeFile(file_spec.GetFilename());
+                          eventCallback(Event{.data = Event::SwitchToFile{.filename = file_spec.GetFilename()}});
                       }
                   }
               }
@@ -529,6 +533,6 @@ exit:
   int exitCode = process.GetExitStatus();
   const char* exitReason = process.GetExitDescription() ? process.GetExitDescription() : "none";
   std::string fmt = fmt::format("Process exitted [code={}, reason={}]", exitCode, exitReason);
-  imGuiLayer_ptr->PushIOLine(fmt);
+  eventCallback(Event{.data = Event::IO{.data=fmt}});
   Logger::Info("LLDB Event Thread Stopping");
 }
