@@ -26,7 +26,7 @@ class LLDBDebugger {
         std::string data;
       };
       struct SwitchToFile {
-        std::string filename;
+        std::filesystem::path filepath;
       };
       std::variant<Continue, StepOver, StepInto, LoadFile, IO, SwitchToFile> data;
     };

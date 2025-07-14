@@ -208,7 +208,7 @@ void LLDBDebugger::SetActiveLine(BreakpointData data) {
   Logger::ScopedGroup g("SetActiveLine");
   Logger::Info("file: {}, line: {}", data.path.string(), data.line_number);
   active_line = data;
-  eventCallback(Event{.data = Event::SwitchToFile(active_line->path)});
+  eventCallback(Event{.data = Event::SwitchToFile{.filepath=active_line->path}});
 }
 
 bool LLDBDebugger::IsActiveFile(const std::string& path) {
@@ -397,7 +397,7 @@ void LLDBDebugger::DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& 
 
     while (fgets(buffer, buffer_size, redirect.file) != nullptr)
     {
-      eventCallback(Event{.data = Event::IO(std::string(buffer))});
+      eventCallback(Event{.data = Event::IO{.data = std::string(buffer)}});
       out << buffer;
     }
 
@@ -479,7 +479,7 @@ void LLDBDebugger::LLDBEventThread() {
                           Logger::Info("  Location: {}:{}", file_spec.GetFilename(), line_entry.GetLine());
                           std::string fullpath = std::string(file_spec.GetDirectory()) + Util::PathSeparator + std::string(file_spec.GetFilename());
                           SetActiveLine({fullpath, (int)line_entry.GetLine()});
-                          eventCallback(Event{.data = Event::SwitchToFile{.filename = file_spec.GetFilename()}});
+                          eventCallback(Event{.data = Event::SwitchToFile{.filepath = file_spec.GetFilename()}});
                       }
                   }
               }

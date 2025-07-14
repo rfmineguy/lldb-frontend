@@ -102,7 +102,7 @@ void Window::DebuggerEventListener(const LLDBDebugger::Event& event) {
     debuggerCtx.StepInto();
   }
   else if (auto e = std::get_if<LLDBDebugger::Event::SwitchToFile>(&event.data)) {
-    imguiLayer.SwitchToCodeFile(e->filename);
+    imguiLayer.SwitchToCodeFile(e->filepath);
   }
   else {
     std::visit([](auto&& arg) {
