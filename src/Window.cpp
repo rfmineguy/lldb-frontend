@@ -10,9 +10,8 @@ Window::Window(const std::string& title, int width, int height):
   debuggerCtx(),
   imguiLayer(debuggerCtx)
 {
-  debuggerCtx.SetEventCallback([&](const LLDBDebugger::Event& e) { 
-    DebuggerEventListener(e);
-  });
+  std::function<void(const LLDBDebugger::Event&)> listener = std::bind(&Window::DebuggerEventListener, this, std::placeholders::_1);
+  debuggerCtx.SetEventCallback(listener);
 
   // Initialize glfw window
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

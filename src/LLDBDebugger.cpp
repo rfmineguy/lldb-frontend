@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <stdexcept>
 #include "Logger.hpp"
+#include "Util.hpp"
 #ifndef _WIN32
 #include <unistd.h>
 #else
