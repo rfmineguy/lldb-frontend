@@ -7,14 +7,29 @@
 
 struct FileContext;
 #include <thread>
+#include <variant>
 #include <fmt/core.h>
 #include "LLDBCommandParser.hpp"
 #include "TempRedirect.hpp"
 
-class ImGuiLayer;
-
 class LLDBDebugger {
   friend class Window;
+  public:
+    struct Event {
+      struct Continue {};
+      struct StepOver {};
+      struct StepInto {};
+      struct LoadFile {
+        FileHierarchy::TreeNode* node;
+      };
+      struct IO {
+        std::string data;
+      };
+      struct SwitchToFile {
+        std::string filename;
+      };
+      std::variant<Continue, StepOver, StepInto, LoadFile, IO, SwitchToFile> data;
+    };
   public:
     enum class ExecResultStatus {
       Ok,
@@ -43,6 +58,7 @@ class LLDBDebugger {
   public:
     LLDBDebugger();
     ~LLDBDebugger();
+    void SetEventCallback(std::function<void(const Event&)> eventCallback);
 
     void LaunchTarget();
     lldb::SBDebugger& GetDebugger(); 
@@ -92,7 +108,7 @@ class LLDBDebugger {
     void DumpToStd(TempRedirect &redirect, std::ostream &out, size_t& offset);
 
   protected:
-    ImGuiLayer* imGuiLayer_ptr = 0;
+    std::function<void(const Event&)> eventCallback;
 
   private:
     LLDB_CommandParser commandParser;
