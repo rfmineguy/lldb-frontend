@@ -17,7 +17,7 @@ class Window {
     LLDBDebugger&     GetDebuggerCtx();
 
   private:
-    
+    void DebuggerEventListener(const LLDBDebugger::Event& e);
 
   private:
     GLFWwindow *m_Window;

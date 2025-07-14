@@ -7,9 +7,13 @@
 #include <glad/gl.h>
 
 Window::Window(const std::string& title, int width, int height):
+  debuggerCtx(),
   imguiLayer(debuggerCtx)
 {
-  debuggerCtx.imGuiLayer_ptr = &imguiLayer;
+  debuggerCtx.SetEventCallback([&](const LLDBDebugger::Event& e) { 
+    DebuggerEventListener(e);
+  });
+
   // Initialize glfw window
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -76,6 +80,35 @@ Window::Window(const std::string& title, int width, int height):
   }
 _exit:
   Logger::Info("Created window");
+}
+
+void Window::DebuggerEventListener(const LLDBDebugger::Event& event) {
+  std::visit([](auto&& arg) {
+    Logger::Info("Handling... {}", typeid(arg).name());
+  }, event.data);
+  if (auto e = std::get_if<LLDBDebugger::Event::LoadFile>(&event.data)) {
+    imguiLayer.FrontendLoadFile(*e->node);
+  }
+  else if (auto e = std::get_if<LLDBDebugger::Event::IO>(&event.data)) {
+    imguiLayer.PushIOLine(e->data);
+  }
+  else if (auto e = std::get_if<LLDBDebugger::Event::Continue>(&event.data)) {
+    debuggerCtx.Continue();
+  }
+  else if (auto e = std::get_if<LLDBDebugger::Event::StepOver>(&event.data)) {
+    debuggerCtx.StepOver();
+  }
+  else if (auto e = std::get_if<LLDBDebugger::Event::StepInto>(&event.data)) {
+    debuggerCtx.StepInto();
+  }
+  else if (auto e = std::get_if<LLDBDebugger::Event::SwitchToFile>(&event.data)) {
+    imguiLayer.SwitchToCodeFile(e->filename);
+  }
+  else {
+    std::visit([](auto&& arg) {
+      Logger::Crit("Type not handled: {}", typeid(arg).name());
+    }, event.data);
+  }
 }
 
 Window::~Window() {
