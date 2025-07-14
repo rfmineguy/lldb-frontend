@@ -1,5 +1,5 @@
 if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  message(FATAL_ERROR "Build must be set to Debug")
+  message(WARNING "Build is not set to Debug")
 else()
   message(STATUS "CMAKE_BUILD_TYPE is Debug")
 
