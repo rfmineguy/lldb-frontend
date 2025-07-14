@@ -12,6 +12,7 @@ class LLDBDebugger;
 
 class ImGuiLayer {
   friend LLDBDebugger;
+  friend Window;
   public:
     ImGuiLayer(LLDBDebugger& debugger);
     ~ImGuiLayer();
