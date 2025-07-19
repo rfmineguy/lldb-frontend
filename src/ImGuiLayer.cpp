@@ -12,6 +12,7 @@
 #include <fstream>
 #include "Window.hpp"
 #include "Util.hpp"
+#include "Args.hpp"
 #include "Logger.hpp"
 #include "Resources.hpp"
 #include "Styling.hpp"
@@ -308,7 +309,7 @@ void ImGuiLayer::DrawLocalsWindow() {
 
 void ImGuiLayer::DrawRunButton() {
   std::array<char, 100> executable_path;
-  static std::vector<std::string> args;
+  static std::vector<std::string> args = lldb_frontend::Args::ForwardArgs();
   static int delete_index = -1;
   if (ImGui::Button("Run")) {
     auto argsConverted = Util::ConvertArgsToArgv(args);
