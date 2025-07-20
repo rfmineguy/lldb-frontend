@@ -31,6 +31,7 @@ class ImGuiLayer {
 
   private:
     bool LoadFile(FileHierarchy::TreeNode&);
+    void ProcessArguments(const char*, char*, int, char*[100]);
 
   private:
     void DrawDebugWindow();
@@ -47,6 +48,7 @@ class ImGuiLayer {
     void DrawFileBrowser();
 
   private:
+    void DrawRunButton();
     void DrawCodeFile(FileHierarchy::TreeNode&);
     void DrawLocal(lldb::SBValue&, const std::string& = "");
 

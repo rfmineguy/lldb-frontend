@@ -10,6 +10,7 @@ namespace lldb_frontend {
       static void SetupOptions();
       static bool Parse(int argc, char** argv);
       static void ShowHelp();
+      static std::vector<std::string> ForwardArgs();
     public:
       template<typename T>
       static std::optional<T> Get(const std::string& name) {

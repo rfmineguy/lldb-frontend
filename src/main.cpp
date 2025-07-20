@@ -48,6 +48,12 @@ int main(int argc, char** argv) {
     std::cout << "Provided executable: " << *value << std::endl;
   }
 
+  auto remaining = lldb_frontend::Args::ForwardArgs();
+  std::cout << "Remaining" << std::endl;
+  for (auto& a : remaining) {
+    std::cout << a << std::endl;
+  }
+
   lldb_frontend::Init::InitGlfw();
 
   auto [width, height] = lldb_frontend::Init::GetImGuiIniDimensions();
