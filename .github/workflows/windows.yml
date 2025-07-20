@@ -37,17 +37,17 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Debug -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=C:/llvm/lib/cmake/llvm" -DCMAKE_VERBOSE_MAKEFILE=ON
+          cmake -G Ninja -B build -D CMAKE_BUILD_TYPE=Release -D CMAKE_C_COMPILER=clang -D CMAKE_CXX_COMPILER=clang++ "-DLLVM_DIR=C:/llvm/lib/cmake/llvm" -DCMAKE_VERBOSE_MAKEFILE=ON
         shell: cmd
 
       - name: Build Target
         run: |
-          cmake --build build --config Debug
+          cmake --build build --config Release
         shell: cmd
 
       - name: Install Build
         run: |
-          cmake --install build --config Debug
+          cmake --install build --config Release
         shell: cmd
 
       - name: Package Artifacts

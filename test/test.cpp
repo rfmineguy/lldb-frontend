@@ -7,6 +7,10 @@ void testFunction() {
 }
 
 int main(int argc, const char **argv) {
+  for (int i = 0; i < argc; i++) {
+    std::cout << argv[i] << std::endl;
+  }
+
   std::cout << "argv[0]: " << argv[0] << std::endl;
   std::cout << "Hello world from test" << std::endl;
   std::cout << "Hello world from test" << std::endl;

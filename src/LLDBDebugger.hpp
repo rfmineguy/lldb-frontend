@@ -60,7 +60,7 @@ class LLDBDebugger {
     ~LLDBDebugger();
     void SetEventCallback(std::function<void(const Event&)> eventCallback);
 
-    void LaunchTarget();
+    void LaunchTarget(std::optional<std::vector<std::string>> args);
     lldb::SBDebugger& GetDebugger(); 
     lldb::SBTarget GetTarget();
     lldb::SBProcess GetProcess();

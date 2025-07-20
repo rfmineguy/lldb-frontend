@@ -22,6 +22,8 @@ namespace Util {
   inline static std::string PathSeparator = std::string(1, char(std::filesystem::path::preferred_separator));
 
   SystemTheme GetSystemTheme();
+
+  std::vector<std::string> ConvertArgsToArgv(std::vector<std::string>& args);
 }
 
 #endif

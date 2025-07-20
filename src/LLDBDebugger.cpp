@@ -37,7 +37,7 @@ void LLDBDebugger::SetEventCallback(std::function<void(const Event&)> _eventCall
   eventCallback = _eventCallback;
 }
 
-void LLDBDebugger::LaunchTarget() {
+void LLDBDebugger::LaunchTarget(std::optional<std::vector<std::string>> args) {
   Logger::ScopedGroup g("LaunchTarget");
   auto target = GetTarget();
   if (!target.IsValid()) {
@@ -75,8 +75,16 @@ void LLDBDebugger::LaunchTarget() {
       return;
   }
 
+  static std::vector<const char*> argv_intermediate;
   const char **argv = nullptr; // or fill if you need
   const char **envp = nullptr;
+  if (args.has_value()) {
+    for (const auto& a : *args) {
+      argv_intermediate.push_back(a.c_str());
+    }
+    argv_intermediate.push_back(nullptr);
+    argv = argv_intermediate.data();
+  }
 
   auto in_string = in_redirect.path.string();
   auto err_string = err_redirect.path.string();
@@ -351,7 +359,7 @@ LLDBDebugger::ExecResult LLDBDebugger::ExecCommand(const std::string& command, F
       }
     case LLDB_CommandParser::ParsedCommandType::RUN:
       {
-        LaunchTarget();
+        LaunchTarget(std::nullopt);
         break;
       }
     case LLDB_CommandParser::ParsedCommandType::STEP:
